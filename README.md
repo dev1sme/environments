@@ -127,6 +127,51 @@ Nên mọi thứ inject vào trang phải đi **cùng origin** với trang. Đó
 
 **coredns bind riêng vào `HOST_IP`, không bind `0.0.0.0`.** Host chạy systemd-resolved giữ `127.0.0.53:53`, bind all là `address already in use`. Đổi IP máy thì sửa `.env` rồi `make dns-init && make rs`.
 
+## Đem repo sang môi trường khác
+
+Hai thứ trong repo này gắn với công ty hiện tại: **domain** (`.cba`) và **cert** (do `CYBRIDGE ASIA Root CA` cấp, cả LAN đã trust). Sang chỗ khác thì cả hai vô giá trị.
+
+```bash
+make domain-set d=mycompany.local    # doi domain noi bo
+make dns-init                        # sinh lai zone
+make cert-init                       # sinh CA rieng + wildcard cert
+make test && make reload
+```
+
+### `make domain-set d=<domain>`
+
+Chỗ nào derive được từ `DOMAIN` trong `.env` thì đã derive rồi, **không** nằm trong diện sed:
+
+- `tools/coredns/Corefile` — dùng `{$DOMAIN}`, env substitution của CoreDNS
+- `tools/coredns/zones/zone.db.example` — placeholder `__DOMAIN__`, `make dns-init` thay
+- `makefile` — `ZONE` derive từ `$(DOMAIN)`
+
+Còn **nginx thì bắt buộc sed**, vì nginx không đọc biến môi trường trong config. `server_name` ở `conf.d/*` là chỗ duy nhất phải đổi bằng tay (target này làm hộ).
+
+Target bắt buộc **working tree sạch** — nó sed toàn repo nên phải có commit để `git checkout .` là về được. Chạy xong `git diff` đọc lại trước khi commit.
+
+### `make cert-init [d=<domain>]`
+
+Sinh CA riêng + wildcard cert bằng `openssl`, không cần cài `mkcert`:
+
+```
+tools/ssl-cert/ca.crt      <- cai file nay vao may/dien thoai xem demo
+tools/ssl-cert/ca.key      <- private key cua CA, gitignore, dung de mat
+tools/ssl-cert/self.crt    <- leaf, SAN: <domain> + *.<domain>
+tools/ssl-cert/self.key
+```
+
+CA có `basicConstraints=critical,CA:TRUE` nên **cài được như CA thật** trên iOS/Android — khác cert công ty hiện tại (là leaf, không phải CA).
+
+**Nó từ chối ghi đè `self.crt` đang có** trừ khi `force=1`. Lý do: `self.key` bị gitignore nên ghi đè là mất vĩnh viễn, git không cứu được.
+
+Verify sau khi sinh:
+
+```bash
+make cert                                              # subject, issuer, SAN, ngay het han
+openssl verify -CAfile tools/ssl-cert/ca.crt tools/ssl-cert/self.crt
+```
+
 ## Quan hệ với docker-starfish
 
 `docker-starfish/` là môi trường dev PHP dùng chung runtime — nginx ở đó vừa serve file vừa gọi php-fpm (`root` + `fastcgi_pass`), nên phải mount source vào container proxy và build image nginx riêng.
