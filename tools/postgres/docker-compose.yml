@@ -1,11 +1,5 @@
-# Postgres dùng chung — mỗi app 1 database riêng trong cùng instance.
-#
-# Root include file này vào. Đường dẫn tương đối resolve theo tools/postgres/.
-# Xem tools/proxy/docker-compose.yml để biết vì sao network khai `name:`
-# chứ không `external: true`.
-#
-# Không publish port ra host: app join env-net rồi kết nối qua tên `postgres`.
-# Cần psql từ host thì `make psql`.
+# Postgres dùng chung. Database + role tạo bằng tay (DBeaver / `make psql`).
+# Lý do chọn image debian, md5, và override password_encryption: xem README.md
 
 networks:
   env-net:
@@ -13,16 +7,21 @@ networks:
 
 services:
   postgres:
-    image: postgres:16-alpine
+    image: postgres:16
     container_name: env-postgres
     restart: unless-stopped
+    # Giữ default hash là SCRAM (initdb tự đặt md5 khi --auth-host=md5)
+    command: ["postgres", "-c", "password_encryption=scram-sha-256"]
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      # Luật rộng: nhận cả md5 và SCRAM. Chỉ tác dụng lúc .data/postgres trống.
+      POSTGRES_INITDB_ARGS: "--auth-host=md5"
+    ports:
+      # Cho DBeaver trên host. Container khác gọi qua tên `postgres:5432`.
+      - "127.0.0.1:5432:5432"
     volumes:
       - ../../.data/postgres:/var/lib/postgresql/data
-      # Script trong đây CHỈ chạy khi .data/postgres còn trống. Postgres đã
-      # chạy trước đó thì tạo DB bằng `make db p=<app>`.
       - ./init:/docker-entrypoint-initdb.d:ro
     networks:
       - env-net

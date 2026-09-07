@@ -1,9 +1,6 @@
-# Thêm app mới: copy file này thành <app>.conf trong cùng thư mục,
-# sửa server_name và giá trị $upstream (service name khai trong
-# projects/<app>/docker-compose.yml + port app listen bên trong container).
-#
+# App mới: copy thành <app>.conf, sửa server_name + giá trị $upstream.
 # Header proxy, timeout, body size, inject dev.js: đã lo ở 00-defaults.conf
-# và snippets/proxy-params.conf — không cần khai lại ở đây.
+# và snippets/. Mấy chỗ dễ sập: ../README.md
 
 server {
     listen 80;
@@ -18,21 +15,11 @@ server {
     ssl_certificate     /etc/nginx/ssl/self.crt;
     ssl_certificate_key /etc/nginx/ssl/self.key;
 
-    # Badge "DEV ENV" — serve dev.js cùng origin. Bỏ dòng này thì thiết bị
-    # chưa cài root CA (điện thoại) sẽ không thấy badge.
     include /etc/nginx/snippets/dev-badge.conf;
 
     location / {
-        # QUAN TRỌNG: upstream phải nằm trong biến.
-        #
-        # Viết trực tiếp `proxy_pass http://app:3000;` thì nginx resolve tên
-        # `app` lúc parse config. App container chưa chạy là proxy chết luôn:
-        #     nginx: [emerg] host not found in upstream "app"
-        # Và chết proxy nghĩa là chết luôn mọi app khác trong conf.d/.
-        #
-        # Cho vào biến thì nginx resolve lúc có request (nhờ `resolver`
-        # khai ở 00-defaults.conf). App tắt thì domain đó trả 502,
-        # các app còn lại vẫn sống.
+        # Upstream PHẢI trong biến. Viết literal thì app tắt là CẢ PROXY chết,
+        # kéo theo mọi app khác. Xem ../README.md
         set $upstream http://app:3000;
         include /etc/nginx/snippets/proxy-params.conf;
         proxy_pass $upstream;

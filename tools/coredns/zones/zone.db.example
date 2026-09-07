@@ -1,6 +1,5 @@
-; Template zone — KHÔNG hardcode domain.
-; `make dns-init` thay __DOMAIN__ / __HOST_IP__ bằng giá trị trong .env
-; rồi ghi ra zones/<DOMAIN>.db (file thật bị gitignore).
+; Template zone. `make dns-init` thay __DOMAIN__ / __HOST_IP__ rồi ghi ra
+; zones/<DOMAIN>.db (file thật bị gitignore).
 
 $ORIGIN __DOMAIN__.
 $TTL 86400
@@ -16,6 +15,5 @@ $TTL 86400
 @       IN  A   __HOST_IP__
 dns     IN  A   __HOST_IP__
 
-; Wildcard — mọi app mới chỉ cần thêm file .conf ở tools/proxy/conf.d/,
-; không phải sửa zone này nữa.
+; Wildcard — app mới chỉ cần thêm file .conf ở tools/proxy/conf.d/
 *       IN  A   __HOST_IP__

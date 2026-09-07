@@ -65,9 +65,9 @@ proxy_pass $upstream;
 
 App tắt thì domain đó trả 502, phần còn lại vẫn sống. `_example.conf.dist` đã làm sẵn — đừng sửa lại thành literal.
 
-**Ngoại lệ:** upstream đến từ `/etc/hosts` (như `host.docker.internal` trong `icms.conf`) thì **phải** dùng literal. nginx `resolver` chỉ query DNS, **không đọc `/etc/hosts`** — dạng biến sẽ báo `host.docker.internal could not be resolved`. Và literal an toàn ở đó vì entry `/etc/hosts` luôn tồn tại, khác tên container (biến mất khỏi Docker DNS khi container tắt).
+**Ngoại lệ — app chạy `network_mode: host`.** Container đó không có tên trong Docker DNS, phải đi qua `host.docker.internal` (map bằng `extra_hosts` trong `docker-compose.yml` của thư mục này), và ở đó **phải dùng literal**: nginx `resolver` chỉ query DNS, **không đọc `/etc/hosts`** — dạng biến sẽ báo `host.docker.internal could not be resolved`. Literal an toàn vì entry `/etc/hosts` luôn tồn tại, khác tên container (biến mất khỏi Docker DNS khi container tắt).
 
-Kèm ràng buộc: `icms.conf` phụ thuộc `extra_hosts: host.docker.internal:host-gateway` trong `docker-compose.yml` của thư mục này. Mang `conf.d/` sang nơi khác mà không mang compose theo là proxy không start.
+Hiện **không app nào** dùng đường này. `icms` từng dùng, nay đã join `env-net` (override `jdbc.properties` để trỏ DB sang `postgres`) nên chuyển về dạng biến được. `extra_hosts` vẫn để lại cho trường hợp sau này.
 
 ### Đừng nhúng asset từ host khác
 

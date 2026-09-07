@@ -1,3 +1,2 @@
--- Thêm app mới cần DB riêng: thêm 1 dòng CREATE DATABASE bên dưới,
--- rồi recreate container postgres (script chỉ chạy khi volume .data/postgres còn trống).
--- CREATE DATABASE app_example;
+-- Script trong thư mục này CHỈ chạy khi .data/postgres còn trống.
+-- Database + role tạo bằng tay trong DBeaver — xem ../README.md

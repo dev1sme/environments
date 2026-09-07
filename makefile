@@ -87,13 +87,11 @@ sh:
 ##############################################################
 # Proxy
 ##############################################################
-# Luon `make test` truoc `make reload`. nginx -s reload voi config sai thi
-# nginx giu config cu va van chay — nhung khong co bao loi ro rang.
+# nginx -s reload voi config sai thi nginx giu config cu va van chay, khong
+# bao loi ro rang — nen `reload` goi `test` truoc. Xem tools/proxy/README.md
 test:
 	$(DC) exec proxy nginx -t
 	@:
-# reload thay vi restart: worker cu phuc vu xong request dang do moi thoat.
-# Restart thi dut het ket noi dang mo, ke ca demo dang chay.
 reload: test
 	$(DC) exec proxy nginx -s reload
 	@echo "proxy reloaded"
@@ -105,11 +103,7 @@ cert:
 ##############################################################
 # Portability — doi domain / sinh cert rieng
 ##############################################################
-# Doi domain noi bo. Corefile, zone template, makefile da derive tu DOMAIN
-# nen khong nam trong dien sed; chi nginx conf + docs la phai sed vi nginx
-# khong doc bien moi truong trong config.
-#
-# Bat buoc working tree sach: day la sed toan repo, phai co commit de rollback.
+# Sed toan repo -> bat buoc working tree sach de rollback duoc. Xem README.md
 domain-set:
 	@test -n "$(d)" || { echo "thieu d=<domain-moi>, vd: d=mycompany.local"; exit 1; }
 	@test -n "$(DOMAIN)" || { echo "DOMAIN chua set trong .env"; exit 1; }
@@ -133,9 +127,8 @@ domain-set:
 	@echo "  4. git diff               doc lai truoc khi commit"
 	@:
 
-# Sinh CA rieng + wildcard cert. Dung khi khong co san root CA cua cong ty.
-# KHONG ghi de cert dang co tru khi force=1: self.key bi gitignore nen ghi de
-# la mat vinh vien, git khong cuu duoc.
+# Tu choi ghi de cert dang co tru khi force=1 (self.key gitignore, mat la mat
+# vinh vien). Xem tools/ssl-cert/README.md
 cert-init:
 	@d='$(if $(d),$(d),$(DOMAIN))'; \
 	 test -n "$$d" || { echo "thieu d=<domain> va DOMAIN cung trong"; exit 1; }; \
@@ -221,8 +214,6 @@ app-logs:
 ##############################################################
 # codegraph
 ##############################################################
-# Compose cua codegraph nam o tools/codegraph/docker-compose.yml, root include
-# vao nen cung 1 project — goi thang bang ten service, khong can -f.
 cg-build:
 	@test -n "$(PROJECTS_ROOT)" || { echo "PROJECTS_ROOT chua set trong .env"; exit 1; }
 	$(DC) build codegraph
@@ -238,8 +229,7 @@ cg-sh:
 	$(DC) exec codegraph bash
 	@:
 
-# UI bi khoa bang basic auth vi no doc graph cua source code.
-# Khong truyen pw= thi no hoi, khong hien ra man hinh va khong vao shell history.
+# Khong truyen pw= thi no hoi, khong vao shell history.
 cg-auth:
 	@test -n "$(u)" || { echo "thieu u=<user>"; exit 1; }
 	@if [ -n "$(pw)" ]; then pw='$(pw)'; \
@@ -252,8 +242,7 @@ cg-auth:
 	@$(MAKE) --no-print-directory reload
 	@:
 
-# Lan dau phai `init` (no index luon). Lan sau moi dung `index`.
-# -y de khong prompt: docker exec khong co TTY.
+# Lan dau `init` (index luon), lan sau `index`. -y vi docker exec khong co TTY.
 cg-index:
 	@test -n "$(p)" || { echo "thieu p=<duong-dan-tuong-doi-trong-PROJECTS_ROOT>"; exit 1; }
 	@if [ -d "$(PROJECTS_ROOT)/$(p)/.codegraph" ]; then \
@@ -270,8 +259,6 @@ cg-status:
 	@$(DOCKER) exec -w $(PROJECTS_ROOT)/$(p) env-codegraph codegraph status
 	@:
 
-# Phuong an A (UI 1 domain, doi project theo yeu cau) CHUA LAM DUOC:
-# release v1.6.0 khong co lenh `ui`, chi branch main moi co.
 cg-ui:
 	@echo "codegraph v1.6.0 khong co lenh 'ui' (chi co tren branch main, chua release)."
 	@echo "Kiem tra ban hien tai:  docker exec env-codegraph codegraph --help"
@@ -280,9 +267,7 @@ cg-ui:
 	@echo "make cg-auth u=<user>, make reload."
 	@exit 1
 
-# MCP config. Dung ban PER-PROJECT (-w) de co default project:
-# khong co -w thi server bao "no default project" va moi tool call phai
-# tu truyen projectPath.
+# Ban PER-PROJECT (-w) de co default project. Xem tools/codegraph/README.md
 cg-mcp:
 	@test -n "$(p)" || { echo "thieu p=<duong-dan-tuong-doi>"; exit 1; }
 	@echo 'Dan vao $(PROJECTS_ROOT)/$(p)/.mcp.json:'

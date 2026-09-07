@@ -1,12 +1,5 @@
-# nginx — reverse proxy + TLS termination cho *.thomson.cba
-#
-# File này được root docker-compose.yml include vào. Đường dẫn tương đối ở đây
-# resolve theo THƯ MỤC NÀY (tools/proxy/), không phải root repo — đó là cách
-# `include` hoạt động. Nên `./conf.d` chứ không phải `./tools/proxy/conf.d`.
-#
-# Khai `name: env-net` giống hệt root, KHÔNG `external: true`: hai khai báo bị
-# merge, có external là network gộp thành external và máy mới sẽ báo
-# "network env-net declared as external, but could not be found".
+# nginx reverse proxy + TLS. Đường dẫn tương đối resolve theo THƯ MỤC NÀY.
+# Chi tiết: README.md
 
 networks:
   env-net:
@@ -26,8 +19,7 @@ services:
       - ./auth:/etc/nginx/auth:ro
       - ../ssl-cert:/etc/nginx/ssl:ro
       - ../../assets:/usr/share/nginx/assets:ro
-    # Cho phép proxy với tới service chạy `network_mode: host` hoặc process
-    # chạy thẳng trên host (vd icms-tomcat ở :18080).
+    # Để với tới service chạy network_mode: host (hiện không app nào dùng)
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:

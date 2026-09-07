@@ -1,11 +1,5 @@
-# DNS nội bộ cho *.${DOMAIN} — domain lấy từ .env, không hardcode.
-#
-# LƯU Ý: LAN công ty (10.11.11.10/11) ĐÃ resolve wildcard *.${DOMAIN} về
-# HOST_IP rồi, nên trong mạng này service này là DƯ. Nó chỉ cần khi demo ở
-# mạng khác (nhà, office khách, hotspot) — lúc đó bật lên và trỏ DNS của client
-# về HOST_IP.
-#
-# Root include file này vào. Đường dẫn tương đối resolve theo tools/coredns/.
+# DNS nội bộ cho *.$DOMAIN. DƯ trong LAN công ty (đã resolve sẵn) — chỉ cần
+# khi demo ở mạng khác. Chi tiết: README.md
 
 networks:
   env-net:
@@ -18,17 +12,14 @@ services:
     restart: unless-stopped
     command: -conf /etc/coredns/Corefile
     environment:
-      # Corefile dùng `{$$DOMAIN}` (env substitution của CoreDNS) nên file đó
-      # không hardcode domain.
       DOMAIN: ${DOMAIN}
-    # Bind riêng vào IP LAN, KHÔNG bind 0.0.0.0 — host đang chạy
-    # systemd-resolved ở 127.0.0.53:53. Bind all là "address already in use".
     ports:
+      # Bind IP LAN, KHÔNG 0.0.0.0 — systemd-resolved giữ 127.0.0.53:53
       - "${HOST_IP}:53:53/udp"
       - "${HOST_IP}:53:53/tcp"
     volumes:
-      # Mount cả thư mục, không mount lẻ từng file: `make dns-init` tạo zone
-      # file mới, mount lẻ file chưa tồn tại là docker tạo thành directory.
+      # Mount cả thư mục: `make dns-init` tạo file mới, mount lẻ file chưa
+      # tồn tại là docker tạo thành directory
       - .:/etc/coredns:ro
     networks:
       - env-net

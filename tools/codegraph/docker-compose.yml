@@ -1,17 +1,7 @@
-# Phương án A: 1 container cho MỌI project, UI đổi project theo yêu cầu.
-#
-# Vì sao 1 container là đủ: codegraph lưu graph ở <project>/.codegraph/
-# (src/directory.ts:86), không giữ state trong container. Nên chỉ cần mount
-# cây project vào là mọi project cùng dùng được.
-#
-# Vì sao mount TRÙNG ĐƯỜNG DẪN host: MCP mode lấy project path từ `rootUri`
-# client gửi (src/bin/codegraph.ts:2027). Claude Code chạy trên host nên gửi
-# đường dẫn host. Mount vào /workspace là container không tìm thấy path đó.
+# codegraph — code intelligence cho AI agent qua MCP.
+# Mount TRÙNG đường dẫn host (không phải /workspace) vì MCP mode lấy project
+# path từ `rootUri` client gửi. Chi tiết + cách bật UI: xem README.md
 
-# Khai giống hệt root docker-compose.yml, KHÔNG dùng `external: true`.
-# File này được root include vào nên 2 khai báo bị merge — có `external: true`
-# ở đây là network gộp thành external, và `make up` trên máy mới sẽ báo
-# "network env-net declared as external, but could not be found".
 networks:
   env-net:
     name: env-net
@@ -26,40 +16,12 @@ services:
     image: env-codegraph:local
     container_name: env-codegraph
     restart: unless-stopped
-    # Phải khớp uid host, không thì mkdir .codegraph/ trong project là EACCES.
-    # Máy này 1001. starfish dùng 1000 — số khác nhau, đừng copy.
+    # Phải khớp uid host, không thì mkdir .codegraph/ là EACCES
     user: "${HOST_UID}:${HOST_GID}"
     volumes:
       - ${PROJECTS_ROOT}:${PROJECTS_ROOT}
     environment:
-      # Tắt telemetry, GIỮ update check.
-      # src/telemetry/index.ts:185   DO_NOT_TRACK=1 > CODEGRAPH_TELEMETRY=0|1 > config > default on
-      # src/upgrade/update-check.ts:90  chi tat boi CODEGRAPH_NO_UPDATE_CHECK hoac DO_NOT_TRACK
-      # Nên dùng CODEGRAPH_TELEMETRY=0, KHÔNG dùng DO_NOT_TRACK — DO_NOT_TRACK
-      # sẽ tắt luôn update check.
+      # Tắt telemetry, GIỮ update check (DO_NOT_TRACK sẽ tắt cả hai)
       CODEGRAPH_TELEMETRY: "0"
     networks:
       - env-net
-
-  # ---------------------------------------------------------------------------
-  # TẮT: lệnh `codegraph ui` CHƯA CÓ trong bản release.
-  #
-  # Kiểm tra 2026-09-07: release mới nhất là v1.6.0, `codegraph --help` không
-  # liệt kê `ui`, chạy thì báo `error: unknown command 'ui'`. Lệnh đó chỉ có
-  # trên branch `main` (src/bin/codegraph.ts:1872), chưa cắt release.
-  #
-  # Bật lại khi có release chứa `ui`: bỏ comment block dưới, đổi
-  # tools/proxy/conf.d/codegraph.conf.dist thành .conf, `make cg-auth`, `make reload`.
-  #
-  # socat cần vì `codegraph ui` bind cứng 127.0.0.1 (src/ui-server/constants.ts:21),
-  # không có flag --host. Share netns thì socat thấy đúng loopback đó rồi mở
-  # 8080 ra env-net cho proxy vào.
-  # ---------------------------------------------------------------------------
-  # codegraph-relay:
-  #   image: alpine/socat
-  #   container_name: env-codegraph-relay
-  #   restart: unless-stopped
-  #   network_mode: "service:codegraph"
-  #   depends_on:
-  #     - codegraph
-  #   command: TCP-LISTEN:8080,fork,reuseaddr TCP:127.0.0.1:4747

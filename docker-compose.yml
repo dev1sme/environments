@@ -1,19 +1,5 @@
-# Root compose KHÔNG khai service nào. Mỗi tool giữ docker-compose.yml riêng
-# trong thư mục của nó, ở đây chỉ include vào.
-#
-# Vì sao `include` thay vì khai hết ở đây:
-#   - config của 1 tool nằm cạnh file của tool đó (conf.d/, init/, zones/)
-#   - vẫn CÙNG 1 compose project nên `docker compose ps` thấy hết, và gọi được
-#     bằng tên service: `docker compose up -d proxy`
-#   - `env_file: .env` lo interpolation cho file được include, khỏi phải
-#     truyền `--env-file` như khi dùng `-f`
-#
-# 2 bẫy khi thêm tool mới (đã đâm phải, xem tools/codegraph/README.md):
-#   1. File được include KHÔNG được khai `external: true` cho env-net — hai
-#      khai báo bị merge, network gộp thành external, máy mới `make up` fail.
-#      Khai `name: env-net` giống ở dưới.
-#   2. Đường dẫn tương đối trong file được include resolve theo THƯ MỤC CỦA
-#      FILE ĐÓ, không phải root. `./conf.d`, không phải `./tools/proxy/conf.d`.
+# Root KHÔNG khai service nào — mỗi tool giữ docker-compose.yml riêng trong
+# thư mục của nó. Cách thêm tool mới + 2 chỗ dễ sai: README.md
 
 include:
   - path: tools/proxy/docker-compose.yml

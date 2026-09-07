@@ -1,8 +1,5 @@
-# codegraph UI — xem graph của project đã index.
-# Compose: tools/codegraph/docker-compose.yml
-#
-# Upstream là container `codegraph`, port 8080 do socat relay mở (xem compose đó).
-# Không trỏ 4747 vì port đó bind 127.0.0.1 trong container, ngoài không vào được.
+# codegraph UI — ĐANG TẮT, lệnh `codegraph ui` chưa có trong release v1.6.0.
+# Cách bật: tools/codegraph/README.md
 
 server {
     listen 80;
@@ -17,16 +14,14 @@ server {
     ssl_certificate     /etc/nginx/ssl/self.crt;
     ssl_certificate_key /etc/nginx/ssl/self.key;
 
-    # UI này đọc graph của source code — để trần trong LAN là lộ cấu trúc
-    # codebase cho bất kỳ ai gõ đúng domain. Sinh file bằng `make cg-auth`.
+    # UI đọc graph của source code — đừng để trần trong LAN.
+    # Sinh file bằng `make cg-auth u=<user>`.
     auth_basic           "codegraph";
     auth_basic_user_file /etc/nginx/auth/codegraph.htpasswd;
 
     include /etc/nginx/snippets/dev-badge.conf;
 
     location / {
-        # Dạng biến: container codegraph tắt thì domain này trả 502,
-        # proxy vẫn start bình thường (xem _example.conf.dist).
         set $upstream http://codegraph:8080;
         include /etc/nginx/snippets/proxy-params.conf;
         proxy_pass $upstream;
