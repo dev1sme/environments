@@ -46,7 +46,7 @@ codegraph ghi graph vào `<project>/.codegraph/`, đó là bind mount ra host. S
 Failed: EACCES: permission denied, mkdir '<project>/.codegraph'
 ```
 
-`docker-starfish` hardcode `user: "1000:1000"` ở mọi service — **đừng copy số đó sang**. Máy này `id -u` = 1001. Khai ở `.env`: `HOST_UID` / `HOST_GID`.
+Đừng hardcode `1000` — đó là số hay thấy trong ví dụ trên mạng, nhưng máy này `id -u` = 1001. Khai ở `.env`: `HOST_UID` / `HOST_GID`.
 
 ### 2. Mount TRÙNG đường dẫn host, không phải `/workspace`
 

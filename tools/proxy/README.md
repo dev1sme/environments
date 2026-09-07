@@ -14,7 +14,7 @@ auth/                        file htpasswd, gitignore
 
 `00-defaults.conf` có prefix `00-` vì nginx include theo thứ tự alphabet — nó phải load trước.
 
-Mọi directive trong `conf.d/*.conf` nằm ở context `http` (nginx.conf gốc include vào trong `http`), nên `resolver`, `map`, `sub_filter` đều khai được ở đây — **không cần build image riêng** để thay `nginx.conf` như `docker-starfish` làm.
+Mọi directive trong `conf.d/*.conf` nằm ở context `http` (nginx.conf gốc include vào trong `http`), nên `resolver`, `map`, `sub_filter` đều khai được ở đây — **không cần build image riêng** chỉ để thay `nginx.conf`.
 
 ## Thêm app mới
 
@@ -98,13 +98,7 @@ proxy_redirect http://$host/ https://$host/;
 proxy_cookie_flags ~ secure;
 ```
 
-## Bê từ docker-starfish
+## Hai chỗ hay thấy làm sai
 
-`resolver` cho upstream biến, `client_max_body_size` + timeout (default nginx là `1m`, upload ảnh là ăn `413`), header WebSocket, auto-inject dev.js bằng `sub_filter`.
-
-Làm khác starfish 2 chỗ:
-
-1. **WebSocket header** — starfish hardcode `Connection "upgrade"` ở mọi block, sai với request HTTP thường. Ở đây map theo `$http_upgrade`: có upgrade thì `upgrade`, không thì `close`.
-2. **Không build image nginx riêng** — starfish phải build vì nó thay cả `nginx.conf`. Ở đây nhét vào `00-defaults.conf` là đủ (cùng context `http`), giữ được `image: nginx:alpine` và `make reload`.
-
-Kèm 1 bug của starfish: `sub_filter` của nó thiếu `Accept-Encoding ""` nên app nào bật gzip là inject im lặng không tác dụng.
+1. **Hardcode `Connection "upgrade"` ở mọi block** — sai với request HTTP thường, vì gửi header upgrade cho request không phải WebSocket. Phải map theo `$http_upgrade`: có upgrade thì `upgrade`, không thì `close`.
+2. **`sub_filter` mà thiếu `proxy_set_header Accept-Encoding ""`** — app nào bật gzip là inject im lặng không tác dụng, không có lỗi nào nhìn thấy được.

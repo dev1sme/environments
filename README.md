@@ -90,11 +90,3 @@ make test && make reload
 Target bắt buộc **working tree sạch** — nó sed toàn repo nên phải có commit để `git checkout .` là về được. Chạy xong `git diff` đọc lại trước khi commit.
 
 Chi tiết `cert-init`: [tools/ssl-cert/README.md](tools/ssl-cert/README.md).
-
-## Quan hệ với docker-starfish
-
-`docker-starfish/` là môi trường dev PHP dùng chung runtime — nginx ở đó vừa serve file vừa gọi php-fpm (`root` + `fastcgi_pass`), nên phải mount source vào container proxy và build image nginx riêng.
-
-Repo này mỗi app là 1 container tự chạy HTTP server, nginx chỉ reverse proxy. Chi tiết cái gì bê từ starfish sang và làm khác chỗ nào: [tools/proxy/README.md](tools/proxy/README.md).
-
-`docker-starfish/` có `.git` riêng nên bị gitignore — nó là repo tham khảo, không phải phần của repo này.

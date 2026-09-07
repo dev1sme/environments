@@ -6,17 +6,13 @@ tools/ssl-cert/ca.key
 tools/ssl-cert/*.srl
 
 # Zone file thật chứa IP theo từng máy — sinh bằng `make dns-init`.
-# Pattern lấy từ docker-starfish: commit .example, ignore file thật.
+# Commit .example, ignore file thật.
 tools/coredns/zones/*
 !tools/coredns/zones/*.example
 
 # Basic auth cho codegraph UI — sinh bằng `make cg-auth u=<user>`.
 tools/proxy/auth/*
 !tools/proxy/auth/.gitkeep
-
-# Repo tham khảo, có .git riêng của nó — không phải phần của repo này.
-# Không ignore thì git add sẽ nhét vào thành gitlink (embedded repository).
-docker-starfish/
 
 # vhost cua app cu the — cau hinh local, khong thuoc repo moi truong.
 tools/proxy/conf.d/vhosts/*

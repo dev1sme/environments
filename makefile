@@ -1,5 +1,5 @@
 #!make
-# Bê pattern từ docker-starfish/makefile. Biến $(n) = tên service, $(p) = tên app.
+# Biến $(n) = tên service, $(p) = tên app.
 -include .env
 
 DOCKER=docker
