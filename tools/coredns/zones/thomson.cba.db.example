@@ -1,0 +1,21 @@
+; Zone cho thomson.cba — bản template.
+; Sinh file thật bằng `make dns-init` (thay __HOST_IP__ bằng HOST_IP trong .env).
+; File thật (thomson.cba.db) bị gitignore vì IP khác nhau theo từng máy.
+
+$ORIGIN thomson.cba.
+$TTL 86400
+@   IN  SOA dns.thomson.cba. root.thomson.cba. (
+        2026090700 ; Serial — tăng mỗi lần sửa zone
+        7200       ; Refresh
+        3600       ; Retry
+        1209600    ; Expire
+        3600       ; Minimum TTL
+)
+@       IN  NS  dns.thomson.cba.
+
+@       IN  A   __HOST_IP__
+dns     IN  A   __HOST_IP__
+
+; Wildcard — mọi app mới chỉ cần thêm file .conf ở tools/proxy/conf.d/,
+; không phải sửa zone này nữa.
+*       IN  A   __HOST_IP__

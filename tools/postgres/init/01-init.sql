@@ -1,0 +1,3 @@
+-- Thêm app mới cần DB riêng: thêm 1 dòng CREATE DATABASE bên dưới,
+-- rồi recreate container postgres (script chỉ chạy khi volume .data/postgres còn trống).
+-- CREATE DATABASE app_example;

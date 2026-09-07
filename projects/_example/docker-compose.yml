@@ -1,0 +1,16 @@
+# Copy thư mục này thành projects/<app>/, sửa build context + biến môi trường.
+# Tạo file .env riêng trong thư mục app (docker compose không đọc .env ở root khi chạy từ đây).
+
+networks:
+  env-net:
+    external: true
+
+services:
+  app:
+    build: .
+    container_name: example-app
+    restart: unless-stopped
+    networks:
+      - env-net
+    environment:
+      DATABASE_URL: postgresql://cba:changeme@postgres:5432/app_example

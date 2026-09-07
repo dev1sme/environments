@@ -1,0 +1,26 @@
+# DNS nội bộ cho *.thomson.cba — bê từ docker-starfish/tools/coredns.
+# Giải quyết bước setup thủ công "sửa hosts file từng máy client":
+# mọi máy trong LAN chỉ cần trỏ DNS về IP host là truy cập được.
+
+thomson.cba:53 {
+    # `ra` = recursion available. Client resolver (nhất là Windows) nhìn cờ này
+    # để quyết định có tin server hay không.
+    header {
+        response set ra
+    }
+
+    root /etc/coredns/zones
+    file thomson.cba.db thomson.cba
+
+    log
+    errors
+}
+
+# Domain khác thì forward ra upstream — client trỏ DNS về đây vẫn duyệt
+# internet bình thường, không cần cấu hình 2 DNS server.
+.:53 {
+    forward . 1.1.1.1 8.8.8.8
+    cache 30
+    log
+    errors
+}

@@ -1,0 +1,30 @@
+# DNS nội bộ cho *.thomson.cba.
+#
+# LƯU Ý: LAN công ty (10.11.11.10/11) ĐÃ resolve wildcard *.thomson.cba về
+# HOST_IP rồi, nên trong mạng này service này là DƯ. Nó chỉ cần khi demo ở
+# mạng khác (nhà, office khách, hotspot) — lúc đó bật lên và trỏ DNS của client
+# về HOST_IP.
+#
+# Root include file này vào. Đường dẫn tương đối resolve theo tools/coredns/.
+
+networks:
+  env-net:
+    name: env-net
+
+services:
+  coredns:
+    image: coredns/coredns:latest
+    container_name: env-coredns
+    restart: unless-stopped
+    command: -conf /etc/coredns/Corefile
+    # Bind riêng vào IP LAN, KHÔNG bind 0.0.0.0 — host đang chạy
+    # systemd-resolved ở 127.0.0.53:53. Bind all là "address already in use".
+    ports:
+      - "${HOST_IP}:53:53/udp"
+      - "${HOST_IP}:53:53/tcp"
+    volumes:
+      # Mount cả thư mục, không mount lẻ từng file: `make dns-init` tạo zone
+      # file mới, mount lẻ file chưa tồn tại là docker tạo thành directory.
+      - .:/etc/coredns:ro
+    networks:
+      - env-net

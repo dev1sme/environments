@@ -1,0 +1,28 @@
+# Postgres dùng chung — mỗi app 1 database riêng trong cùng instance.
+#
+# Root include file này vào. Đường dẫn tương đối resolve theo tools/postgres/.
+# Xem tools/proxy/docker-compose.yml để biết vì sao network khai `name:`
+# chứ không `external: true`.
+#
+# Không publish port ra host: app join env-net rồi kết nối qua tên `postgres`.
+# Cần psql từ host thì `make psql`.
+
+networks:
+  env-net:
+    name: env-net
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: env-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - ../../.data/postgres:/var/lib/postgresql/data
+      # Script trong đây CHỈ chạy khi .data/postgres còn trống. Postgres đã
+      # chạy trước đó thì tạo DB bằng `make db p=<app>`.
+      - ./init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - env-net

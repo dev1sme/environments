@@ -1,0 +1,40 @@
+# Thêm app mới: copy file này thành <app>.conf trong cùng thư mục,
+# sửa server_name và giá trị $upstream (service name khai trong
+# projects/<app>/docker-compose.yml + port app listen bên trong container).
+#
+# Header proxy, timeout, body size, inject dev.js: đã lo ở 00-defaults.conf
+# và snippets/proxy-params.conf — không cần khai lại ở đây.
+
+server {
+    listen 80;
+    server_name app.thomson.cba;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name app.thomson.cba;
+
+    ssl_certificate     /etc/nginx/ssl/self.crt;
+    ssl_certificate_key /etc/nginx/ssl/self.key;
+
+    # Badge "DEV ENV" — serve dev.js cùng origin. Bỏ dòng này thì thiết bị
+    # chưa cài root CA (điện thoại) sẽ không thấy badge.
+    include /etc/nginx/snippets/dev-badge.conf;
+
+    location / {
+        # QUAN TRỌNG: upstream phải nằm trong biến.
+        #
+        # Viết trực tiếp `proxy_pass http://app:3000;` thì nginx resolve tên
+        # `app` lúc parse config. App container chưa chạy là proxy chết luôn:
+        #     nginx: [emerg] host not found in upstream "app"
+        # Và chết proxy nghĩa là chết luôn mọi app khác trong conf.d/.
+        #
+        # Cho vào biến thì nginx resolve lúc có request (nhờ `resolver`
+        # khai ở 00-defaults.conf). App tắt thì domain đó trả 502,
+        # các app còn lại vẫn sống.
+        set $upstream http://app:3000;
+        include /etc/nginx/snippets/proxy-params.conf;
+        proxy_pass $upstream;
+    }
+}

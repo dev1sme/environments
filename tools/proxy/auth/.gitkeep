@@ -1,0 +1,2 @@
+# htpasswd that (codegraph.htpasswd) bi gitignore.
+# Sinh bang: make cg-auth u=<user>
