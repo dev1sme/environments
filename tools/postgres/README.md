@@ -41,7 +41,7 @@ host all all all md5
 
 Ngược lại `scram-sha-256` mới là luật **chặt** — từ chối thẳng role nào lưu md5.
 
-Cần nó vì driver JDBC của icms (postgresql 9.1, 2011) ra đời trước SCRAM, không nói được giao thức đó.
+Cần nó cho app nào dùng driver DB cũ hơn PostgreSQL 10 — SCRAM ra sau, driver đời trước không nói được giao thức đó.
 
 **Chỉ set được lúc initdb**, khi `.data/postgres` còn trống. Volume đã init rồi thì phải sửa tay `.data/postgres/pg_hba.conf` — file đó gitignore, không history, xoá `.data/` là mất.
 
@@ -59,7 +59,7 @@ Nên: **role mới mặc định SCRAM**, chỉ role nào cần md5 mới khai r
 
 ```sql
 SET password_encryption = 'md5';
-CREATE ROLE icms LOGIN PASSWORD 'icms';
+CREATE ROLE legacyapp LOGIN PASSWORD '...';
 RESET password_encryption;
 ```
 
@@ -71,10 +71,10 @@ SELECT rolname, left(rolpassword, 14) FROM pg_authid;
 
 ## Vì sao image là `postgres:16`, không phải `16-alpine`
 
-Cần locale `C.UTF-8` có trong OS để tạo database khớp collation của dump icms:
+App nào cần collation cụ thể thì khai lúc tạo database — nhưng locale đó phải có trong OS của image:
 
 ```sql
-CREATE DATABASE icmsdb OWNER icms
+CREATE DATABASE appdb OWNER appuser
   ENCODING 'UTF8' LC_COLLATE 'C.UTF-8' LC_CTYPE 'C.UTF-8' TEMPLATE template0;
 ```
 
@@ -99,4 +99,4 @@ trash .data/postgres
 make up
 ```
 
-**Mất data của MỌI app** trong instance, không chỉ 1 app — kể cả `icmsdb` (1.5GB). Và lần init lại này là cơ hội duy nhất để `--auth-host=md5` áp dụng.
+**Mất data của MỌI app** trong instance, không chỉ 1 app. Bù lại, lần init lại này là cơ hội duy nhất để đổi `POSTGRES_INITDB_ARGS`.

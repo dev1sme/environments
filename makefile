@@ -48,9 +48,9 @@ help:
 	@echo "  make cg-build              build image"
 	@echo "  make cg-up / cg-down       bat/tat container"
 	@echo "  make cg-auth u=thomson     sinh htpasswd cho UI"
-	@echo "  make cg-index p=thomson/demo   index 1 project"
-	@echo "  make cg-status p=thomson/demo  trang thai index"
-	@echo "  make cg-mcp p=thomson/demo     in config MCP"
+	@echo "  make cg-index p=<project>      index 1 project"
+	@echo "  make cg-status p=<project>     trang thai index"
+	@echo "  make cg-mcp p=<project>        in config MCP"
 
 
 
@@ -112,7 +112,9 @@ domain-set:
 		echo "working tree con thay doi chua commit."; \
 		echo "commit truoc da — sed toan repo can co diem rollback."; exit 1; }
 	@esc=$$(printf '%s' '$(DOMAIN)' | sed 's/\./\\./g'); \
-	 files=$$(git ls-files -z | xargs -0 grep -l "$$esc" 2>/dev/null); \
+	 files=$$( { git ls-files -z | xargs -0 grep -l "$$esc" 2>/dev/null; \
+	             grep -l "$$esc" tools/proxy/conf.d/vhosts/*.conf 2>/dev/null; \
+	           } | sort -u ); \
 	 test -n "$$files" || { echo "khong file nao chua $(DOMAIN)"; exit 1; }; \
 	 echo "sed $(DOMAIN) -> $(d) trong:"; \
 	 printf '%s\n' "$$files" | sed 's/^/  /'; \

@@ -17,3 +17,7 @@ tools/proxy/auth/*
 # Repo tham khảo, có .git riêng của nó — không phải phần của repo này.
 # Không ignore thì git add sẽ nhét vào thành gitlink (embedded repository).
 docker-starfish/
+
+# vhost cua app cu the — cau hinh local, khong thuoc repo moi truong.
+tools/proxy/conf.d/vhosts/*
+!tools/proxy/conf.d/vhosts/.gitkeep

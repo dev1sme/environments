@@ -11,20 +11,6 @@ Dev Containers giải quyết: mỗi project tự pin JDK version trong containe
 - Docker (đã có: `docker --version` → 29.7.2)
 - VSCode extension: `ms-vscode-remote.remote-containers` ("Dev Containers")
 
-## Kiểm kê project hiện có trên máy
-
-| Project | Path | Java | Build tool | Ghi chú |
-|---|---|---|---|---|
-| demo-microservices | `dev/project/thomson/demo-microservices` | 21 | Gradle | đã có `docker-compose.yml` + `.vscode` — multi-service, cần review kỹ trước khi thêm devcontainer |
-| demo | `dev/project/thomson/demo` | 21 | Gradle | |
-| project-member-status/backend | `dev/project/thomson/project-member-status/backend` | 21 | Gradle | |
-| server-indie | `dev/project/dev1sme/server-indie` | 21 | Gradle | |
-| cba-tracking/backend | `dev/project/thomson/cba-tracking/backend` | 21 | Gradle | ứng viên pilot — đơn giản, chưa có Dockerfile sẵn |
-| e-commerce/backend | `dev/project/dev1sme/e-commerce/backend` | 21 | Gradle (kts) | |
-| mp-winboard-backend | `dev/project/thomson/sa-winboard-claude/mp-winboard-backend` | 8 | Maven | |
-| sa-winboard-backend | `dev/project/thomson/sa-winboard-claude/sa-winboard-backend` | 8 | Maven | ứng viên pilot — chưa có Dockerfile sẵn |
-| bizco/icms | `dev/project/thomson/bizco/icms` | 8 | Maven | đã có sẵn `Dockerfile` + `docker-compose.yml` — review trước khi quyết định tái dùng hay viết devcontainer riêng |
-
 ## Bước áp dụng cho 1 project
 
 ### 1. Tạo `.devcontainer/devcontainer.json` trong project
@@ -75,11 +61,11 @@ VSCode mở folder project → Command Palette → **Dev Containers: Reopen in C
 - Java extension nhận đúng SDK version (check status bar góc dưới).
 - Đặt breakpoint, F5 debug hoạt động.
 
-### 4. Case đặc biệt — project đã có Dockerfile riêng (`icms`)
+### 4. Case đặc biệt — project đã có Dockerfile riêng
 
 Không viết devcontainer từ đầu ngay — đọc `Dockerfile`/`docker-compose.yml` hiện có trước, cân nhắc dùng `"dockerComposeFile"` trong `devcontainer.json` trỏ vào compose có sẵn thay vì tạo image mới trùng lặp.
 
 ## Ghi chú khác
 
 - IntelliJ không có "Reopen in Container" 1-click như VSCode. Muốn dùng JDK trong container: Project Structure → SDK → trỏ Docker remote JDK, hoặc dùng JetBrains Gateway.
-- Nếu project dev cần Postgres, tham khảo `tools/postgres/` ở root repo này — join network `env-net` để dùng chung instance thay vì dựng DB riêng trong devcontainer.
+- Project cần Postgres thì join network `env-net` để dùng instance dùng chung, thay vì dựng DB riêng trong devcontainer. Xem `tools/postgres/README.md`.

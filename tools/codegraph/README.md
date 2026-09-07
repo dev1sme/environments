@@ -11,9 +11,9 @@ Repo gốc **không có Dockerfile, không có docker-compose** — cách cài c
 ```bash
 make cg-build                    # build image (lan dau)
 make cg-up                       # bat container
-make cg-index p=thomson/demo     # init + index lan dau, re-index lan sau
-make cg-status p=thomson/demo    # xem trang thai index
-make cg-mcp p=thomson/demo       # in config MCP de dan vao .mcp.json
+make cg-index p=<project>        # init + index lan dau, re-index lan sau
+make cg-status p=<project>       # xem trang thai index
+make cg-mcp p=<project>          # in config MCP de dan vao .mcp.json
 ```
 
 Đường dẫn `p=` là **tương đối trong `PROJECTS_ROOT`** (khai ở `.env` gốc repo).
@@ -27,7 +27,7 @@ make cg-mcp p=thomson/demo       # in config MCP de dan vao .mcp.json
   "mcpServers": {
     "codegraph": {
       "command": "docker",
-      "args": ["exec", "-i", "-w", "/home/thomson/dev/project/thomson/demo",
+      "args": ["exec", "-i", "-w", "<PROJECTS_ROOT>/<project>",
                "env-codegraph", "codegraph", "serve", "--mcp"]
     }
   }
@@ -43,7 +43,7 @@ make cg-mcp p=thomson/demo       # in config MCP de dan vao .mcp.json
 codegraph ghi graph vào `<project>/.codegraph/`, đó là bind mount ra host. Sai uid:
 
 ```
-Failed: EACCES: permission denied, mkdir '/home/thomson/dev/project/thomson/demo/.codegraph'
+Failed: EACCES: permission denied, mkdir '<project>/.codegraph'
 ```
 
 `docker-starfish` hardcode `user: "1000:1000"` ở mọi service — **đừng copy số đó sang**. Máy này `id -u` = 1001. Khai ở `.env`: `HOST_UID` / `HOST_GID`.
@@ -57,7 +57,7 @@ volumes:
 
 MCP mode lấy project path từ `rootUri` client gửi. Claude Code chạy trên host nên gửi đường dẫn host. Mount vào `/workspace` là container không có path đó.
 
-`crg-docker` chọn cách khác (mount `/workspace` + biến `CRG_REPO_ROOT`), nên phải khai project mỗi lần gọi. Mount trùng path thì khỏi.
+Mount vào `/workspace` rồi truyền biến chỉ project cũng chạy được, nhưng phải khai project mỗi lần gọi. Mount trùng path thì khỏi.
 
 ### 3. Compose riêng, root `include` vào — không gọi bằng `-f`
 
@@ -139,15 +139,14 @@ error: unknown command 'ui'
 
 `ui` chỉ có trên branch `main` (`src/bin/codegraph.ts:1872`), chưa cắt release.
 
-Phần hạ tầng cho nó đã viết sẵn, tắt tại 2 chỗ:
-
-- `docker-compose.yml` — service `codegraph-relay` (socat) đang comment
-- `tools/proxy/conf.d/codegraph.conf.dist` — đổi thành `.conf` để bật
-
-Bật lại khi có release:
+Bật lại khi có release chứa `ui`:
 
 ```bash
-# 1. bo comment codegraph-relay trong docker-compose.yml
+# 1. them service relay vao docker-compose.yml:
+#      relay:
+#        image: alpine/socat
+#        network_mode: "service:codegraph"
+#        command: TCP-LISTEN:8080,fork,reuseaddr TCP:127.0.0.1:4747
 # 2. doi ten vhost
 mv tools/proxy/conf.d/codegraph.conf.dist tools/proxy/conf.d/codegraph.conf
 make cg-auth u=<user>     # basic auth, UI lo cau truc source code

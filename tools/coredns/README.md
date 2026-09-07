@@ -18,7 +18,7 @@ $ dig @10.11.11.10 random-zzz9.thomson.cba
 10.11.15.129
 ```
 
-DNS công ty đã có wildcard `*.thomson.cba` trỏ về máy host. Tên nào cũng resolve, kể cả tên chưa tồn tại. Nên trong mạng này **không cần bật coredns** — điện thoại vào được `icms.thomson.cba` dù coredns chưa từng chạy.
+DNS công ty đã có wildcard `*.thomson.cba` trỏ về máy host. Tên nào cũng resolve, kể cả tên chưa tồn tại. Nên trong mạng này **không cần bật coredns** — điện thoại vào được `*.thomson.cba` dù coredns chưa từng chạy.
 
 Nó chỉ cần khi demo ở **mạng không phải LAN công ty**: nhà, office khách, hotspot điện thoại. Lúc đó bật lên rồi trỏ DNS của client về `HOST_IP`.
 
