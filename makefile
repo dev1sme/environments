@@ -8,9 +8,10 @@ DC=docker compose
 # Derive tu DOMAIN trong .env — khong hardcode ten domain o day.
 ZONE=tools/coredns/zones/$(DOMAIN).db
 SSL=tools/ssl-cert
+DUMP=.data/dump
 CG_UI_PORT=4747
 
-.PHONY: help domain-set cert-init up down rs reup build logs ls bash sh test reload cert dns-init dns-test psql db app-up app-down app-logs clean cg-up cg-down cg-build cg-index cg-status cg-ui cg-auth cg-mcp cg-sh
+.PHONY: help domain-set cert-init db-dump db-restore up down rs reup build logs ls bash sh test reload cert dns-init dns-test psql db app-up app-down app-logs clean cg-up cg-down cg-build cg-index cg-status cg-ui cg-auth cg-mcp cg-sh
 
 help:
 	@echo "Core:"
@@ -38,6 +39,8 @@ help:
 	@echo "DB:"
 	@echo "  make psql                  vao psql"
 	@echo "  make db p=myapp            tao database cho app dang chay"
+	@echo "  make db-dump               pg_dumpall + gzip ra .data/dump/"
+	@echo "  make db-restore f=<file>   restore (chi tren cluster moi init)"
 	@echo ""
 	@echo "App:"
 	@echo "  make app-up p=myapp        build + up projects/myapp"
@@ -195,6 +198,28 @@ psql:
 db:
 	@test -n "$(p)" || { echo "thieu p=<app>"; exit 1; }
 	$(DC) exec postgres psql -U $(POSTGRES_USER) -c "CREATE DATABASE $(p);"
+	@:
+
+# pg_dumpall: gom moi database + role (can role de restore lai role hash md5).
+# Nen nen luon — dump plain SQL cua DB 1.5GB la rat lon.
+db-dump:
+	@mkdir -p $(DUMP)
+	@f=$(DUMP)/all_$$(date +%Y%m%d_%H%M).sql.gz; \
+	 $(DOCKER) exec env-postgres pg_dumpall -U $(POSTGRES_USER) | gzip > "$$f"; \
+	 echo "wrote $$f ($$(du -h "$$f" | cut -f1))"
+	@:
+
+# CHU Y: dump cua pg_dumpall chua CREATE ROLE/DATABASE — restore vao cluster
+# da co san object se bao loi trung. Dung tren cluster moi init, hoac xoa
+# .data/postgres truoc (xem tools/postgres/README.md).
+db-restore:
+	@test -n "$(f)" || { echo "thieu f=<file>. Co san:"; ls -1 $(DUMP) 2>/dev/null | sed 's/^/  /'; exit 1; }
+	@test -f "$(f)" || { echo "khong thay file $(f)"; exit 1; }
+	@case "$(f)" in \
+	  *.gz) gzip -dc "$(f)" | $(DOCKER) exec -i env-postgres psql -U $(POSTGRES_USER) -d postgres ;; \
+	  *)    $(DOCKER) exec -i env-postgres psql -U $(POSTGRES_USER) -d postgres < "$(f)" ;; \
+	 esac
+	@echo "restored tu $(f)"
 	@:
 
 ##############################################################
