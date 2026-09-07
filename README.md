@@ -3,7 +3,7 @@
 Repo này dựng tools cần thiết để demo và dev local cho các ứng dụng.
 Ứng dụng sau khi build bằng docker sẽ được cập nhật conf ở đây để có thể demo HTTPS trong mạng LAN nội bộ.
 
-Domain nội bộ: `*.thomson.cba` (khai ở `DOMAIN` trong `.env`).
+Domain nội bộ: `*.$DOMAIN`, khai ở `.env`.
 
 ## Kiến trúc
 
@@ -76,7 +76,7 @@ make cert                # xem cert het han khi nao, SAN gom domain nao
 
 ## Đem repo sang môi trường khác
 
-Hai thứ gắn với công ty hiện tại: **domain** (`.cba`) và **cert** (do `CYBRIDGE ASIA Root CA` cấp, cả LAN đã trust). Sang chỗ khác thì cả hai vô giá trị.
+Hai thứ gắn với môi trường hiện tại: **domain** và **cert**. Cert đang dùng do CA nội bộ của LAN này cấp — sang mạng khác thì không ai trust nó, và domain cũng không ai resolve.
 
 ```bash
 make domain-set d=mycompany.local    # doi domain noi bo

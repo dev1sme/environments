@@ -1,6 +1,6 @@
 # coredns — DNS nội bộ cho `*.$DOMAIN`
 
-Để máy khác trong LAN gõ `myapp.thomson.cba` là biết đường về máy host, khỏi phải sửa `hosts` file trên từng máy client.
+Để máy khác trong LAN gõ `myapp.$DOMAIN` là biết đường về máy host, khỏi phải sửa `hosts` file trên từng máy client.
 
 ```
 Corefile              config, dùng {$DOMAIN} nên không hardcode domain
@@ -10,17 +10,16 @@ zones/<domain>.db      zone thật, sinh bằng `make dns-init`, GITIGNORE
 
 ## LAN công ty đã có sẵn — service này đang DƯ
 
+Kiểm tra trước khi bật — DNS của LAN có thể đã resolve sẵn:
+
+```bash
+resolvectl status | grep 'DNS Servers'
+dig @<dns-cua-lan> random-zzz9.$DOMAIN     # tra ve HOST_IP la da co san
 ```
-$ resolvectl status
-DNS Servers: 10.11.11.10 10.11.11.11
 
-$ dig @10.11.11.10 random-zzz9.thomson.cba
-10.11.15.129
-```
+Có wildcard sẵn thì **không cần bật coredns** — tên nào cũng resolve, kể cả tên chưa tồn tại, nên thêm app mới không phải cấu hình gì.
 
-DNS công ty đã có wildcard `*.thomson.cba` trỏ về máy host. Tên nào cũng resolve, kể cả tên chưa tồn tại. Nên trong mạng này **không cần bật coredns** — điện thoại vào được `*.thomson.cba` dù coredns chưa từng chạy.
-
-Nó chỉ cần khi demo ở **mạng không phải LAN công ty**: nhà, office khách, hotspot điện thoại. Lúc đó bật lên rồi trỏ DNS của client về `HOST_IP`.
+Chỉ cần bật khi ở **mạng không có wildcard đó**: nhà, office khách, hotspot điện thoại. Lúc đó trỏ DNS của client về `HOST_IP`.
 
 ## Dùng
 
@@ -40,6 +39,6 @@ Corefile có 2 block: zone `$DOMAIN` trả về `HOST_IP`, còn lại `forward .
 
 **Mount cả thư mục, không mount lẻ từng file.** `make dns-init` tạo file zone mới — mount lẻ một file chưa tồn tại thì docker tạo nó thành directory, container start là lỗi.
 
-**Domain lấy từ biến, đừng hardcode lại.** `Corefile` dùng `{$DOMAIN}` (env var substitution của CoreDNS), biến truyền từ compose. Đã verify: log in ra `thomson.cba.:53` đúng giá trị trong `.env`. Nên `make domain-set` không cần sed file này.
+**Domain lấy từ biến, đừng hardcode lại.** `Corefile` dùng `{$DOMAIN}` (env var substitution của CoreDNS), biến truyền từ compose. Đã verify: log in ra `<DOMAIN>.:53` đúng giá trị trong `.env`. Nên `make domain-set` không cần sed file này.
 
 **`header { ... }` phải viết nhiều dòng.** Viết 1 dòng thì CoreDNS báo `plugin/header: setting up rule: unknown/unsupported flag=}` và không start.

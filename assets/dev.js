@@ -1,6 +1,6 @@
 !(function () {
   "use strict";
-  var t = "cba-env-badge";
+  var t = "env-badge";
   if (!document.getElementById(t)) {
     var e = "dev",
       n = "#9F000C",

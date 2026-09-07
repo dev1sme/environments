@@ -1,7 +1,13 @@
 # Copy thư mục này thành projects/<app>/, sửa build context + biến môi trường.
-# Tạo file .env riêng trong thư mục app (docker compose không đọc .env ở root khi chạy từ đây).
+#
+# `.env` phải nằm CÙNG thư mục với file compose này — `docker compose -f <path>`
+# đọc .env cạnh file compose, không đọc .env ở root repo.
+#
+# Không publish port ra host: route qua proxy. Thêm vhost ở
+# tools/proxy/conf.d/vhosts/<app>.conf (copy từ ../../tools/proxy/conf.d/_example.conf.dist).
 
 networks:
+  # Tạo bởi docker-compose.yml ở root — `make up` trước.
   env-net:
     external: true
 
@@ -13,4 +19,7 @@ services:
     networks:
       - env-net
     environment:
-      DATABASE_URL: postgresql://cba:changeme@postgres:5432/app_example
+      # Host là tên service `postgres`, không phải localhost. User/pass khớp
+      # POSTGRES_* trong .env ở root repo. Database tạo bằng DBeaver hoặc
+      # `make db p=<app>`.
+      DATABASE_URL: postgresql://dev:changeme@postgres:5432/app_example

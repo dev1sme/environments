@@ -9,27 +9,31 @@ ca.key      private key của CA, GITIGNORE
 
 `self.crt` có commit vào git — đó là cert public, máy khác cần nó để đối chiếu. `*.key` thì không bao giờ.
 
-## Cert hiện tại
-
-**Không phải self-signed.** Do `CYBRIDGE ASIA Root CA` cấp (mkcert), root CA đó nằm ở `/usr/local/share/ca-certificates/mkcert-rootCA-CBA.cer`, hết hạn 2045.
+## Xem cert đang dùng
 
 ```bash
-make cert    # subject, issuer, SAN, ngay het han
+make cert
 ```
 
-```
-subject=... CN = Web Development 2026
-issuer=...  CN = CYBRIDGE ASIA Root CA
-SAN:        DNS:thomson.cba, DNS:*.thomson.cba
+In ra subject, **issuer**, SAN, ngày hết hạn. Đọc `issuer` để biết cert do đâu cấp:
+
+- **Issuer khác subject** — cert do một CA cấp. Máy nào đã cài CA đó thì vào HTTPS không cảnh báo gì. Trên Linux, CA đã cài nằm ở `/usr/local/share/ca-certificates/` và `/etc/ssl/certs/`.
+- **Issuer trùng subject** — self-signed, máy nào cũng cảnh báo cho tới khi tự thêm exception.
+
+Kiểm tra cert có verify được bằng CA store của máy:
+
+```bash
+echo | openssl s_client -connect <HOST_IP>:443 -servername <bat-ky>.$DOMAIN 2>/dev/null \
+  | grep -E 'issuer=|Verify return code'
 ```
 
-Máy nào đã cài root CA đó thì vào HTTPS không cảnh báo gì — đó là lợi thế ở LAN công ty hiện tại, cả LAN đã trust sẵn.
+`Verify return code: 0 (ok)` = máy này đã trust CA đó.
 
 ## Cho điện thoại / máy khách xem demo
 
 Thiết bị chưa cài root CA sẽ hiện cảnh báo. Bấm "vẫn tiếp tục" là xem được trang, nhưng exception đó **chỉ áp cho đúng 1 host** — subresource từ host khác vẫn bị chặn im lặng (xem `tools/proxy/README.md`).
 
-Muốn hết cảnh báo: copy `/usr/local/share/ca-certificates/mkcert-rootCA-CBA.cer` sang thiết bị rồi cài.
+Muốn hết cảnh báo: copy file CA (`ca.crt` nếu sinh bằng `make cert-init`, hoặc file `.crt`/`.cer` của CA trong `/usr/local/share/ca-certificates/`) sang thiết bị rồi cài.
 
 - **iOS** — mở file bằng Safari → Settings → *Profile Downloaded* → Install. Rồi **bắt buộc** vào Settings → General → About → Certificate Trust Settings → bật full trust cho CA đó. Thiếu bước cuối là cài rồi vẫn cảnh báo.
 - **Android** — Settings → Security → Encryption & credentials → Install a certificate → **CA certificate**, không phải "VPN & app user certificate".

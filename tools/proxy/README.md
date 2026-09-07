@@ -79,15 +79,15 @@ App nào sửa được địa chỉ DB/upstream (config file, biến môi trư�
 
 Cert lỗi ở subresource (script/css/img) thì browser **chặn im lặng, không hỏi gì** — khác trang chính, trang chính thì hiện interstitial cho bấm "tiếp tục".
 
-Biểu hiện đã gặp thật: badge hiện trên máy dev (có root CA), không hiện trên điện thoại (không có root CA). Trang vẫn mở vì đã bấm tiếp tục cho domain của app, nhưng `assets.thomson.cba` là host khác nên script bị chặn — không log, không lỗi, chỉ là không có badge.
+Biểu hiện đã gặp thật: badge hiện trên máy dev (có root CA), không hiện trên điện thoại (không có root CA). Trang vẫn mở vì đã bấm tiếp tục cho domain của app, nhưng host assets là host **khác** nên script bị chặn — không log, không lỗi, chỉ là không có badge.
 
 Nên mọi thứ inject vào trang phải đi **cùng origin**. Đó là lý do có `snippets/dev-badge.conf`.
 
 ### Wildcard cert chỉ phủ 1 tầng
 
-`*.thomson.cba` khớp `myapp.thomson.cba` nhưng **không** khớp `api.myapp.thomson.cba`. DNS resolve được (zone có wildcard) nên biểu hiện là truy cập được mà browser chặn TLS.
+`*.$DOMAIN` khớp `myapp.$DOMAIN` nhưng **không** khớp `api.myapp.$DOMAIN`. DNS resolve được (zone có wildcard) nên biểu hiện là truy cập được mà browser chặn TLS.
 
-Đặt tên domain 1 tầng: `myapp-api.thomson.cba`, không phải `api.myapp.thomson.cba`.
+Đặt tên domain 1 tầng: `myapp-api.$DOMAIN`, không phải `api.myapp.$DOMAIN`.
 
 ### App legacy sau TLS termination
 

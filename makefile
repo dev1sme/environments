@@ -50,7 +50,7 @@ help:
 	@echo "codegraph:"
 	@echo "  make cg-build              build image"
 	@echo "  make cg-up / cg-down       bat/tat container"
-	@echo "  make cg-auth u=thomson     sinh htpasswd cho UI"
+	@echo "  make cg-auth u=<user>      sinh htpasswd cho UI"
 	@echo "  make cg-index p=<project>      index 1 project"
 	@echo "  make cg-status p=<project>     trang thai index"
 	@echo "  make cg-mcp p=<project>        in config MCP"
