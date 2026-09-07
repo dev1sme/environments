@@ -10,3 +10,7 @@ tools/coredns/zones/*
 # Basic auth cho codegraph UI — sinh bằng `make cg-auth u=<user>`.
 tools/proxy/auth/*
 !tools/proxy/auth/.gitkeep
+
+# Repo tham khảo, có .git riêng của nó — không phải phần của repo này.
+# Không ignore thì git add sẽ nhét vào thành gitlink (embedded repository).
+docker-starfish/
