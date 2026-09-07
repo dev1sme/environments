@@ -5,10 +5,12 @@
 DOCKER=docker
 DC=docker compose
 
-ZONE=tools/coredns/zones/thomson.cba.db
+# Derive tu DOMAIN trong .env — khong hardcode ten domain o day.
+ZONE=tools/coredns/zones/$(DOMAIN).db
+SSL=tools/ssl-cert
 CG_UI_PORT=4747
 
-.PHONY: help up down rs reup build logs ls bash sh test reload cert dns-init dns-test psql db app-up app-down app-logs clean cg-up cg-down cg-build cg-index cg-status cg-ui cg-auth cg-mcp cg-sh
+.PHONY: help domain-set cert-init up down rs reup build logs ls bash sh test reload cert dns-init dns-test psql db app-up app-down app-logs clean cg-up cg-down cg-build cg-index cg-status cg-ui cg-auth cg-mcp cg-sh
 
 help:
 	@echo "Core:"
@@ -23,6 +25,11 @@ help:
 	@echo "Proxy:"
 	@echo "  make test                  nginx -t, check config truoc khi reload"
 	@echo "  make reload                reload nginx, KHONG dut ket noi"
+	@echo ""
+	@echo "Portability:"
+	@echo "  make domain-set d=new.local  doi domain noi bo (sed toan repo)"
+	@echo "  make cert-init [d=...]       sinh CA rieng + wildcard cert"
+	@echo "  make cert                    xem cert hien tai"
 	@echo ""
 	@echo "DNS:"
 	@echo "  make dns-init              sinh zone file tu HOST_IP trong .env"
@@ -92,7 +99,79 @@ reload: test
 	@echo "proxy reloaded"
 	@:
 cert:
-	@openssl x509 -in tools/ssl-cert/self.crt -noout -subject -dates -ext subjectAltName
+	@openssl x509 -in $(SSL)/self.crt -noout -subject -issuer -dates -ext subjectAltName
+	@:
+
+##############################################################
+# Portability — doi domain / sinh cert rieng
+##############################################################
+# Doi domain noi bo. Corefile, zone template, makefile da derive tu DOMAIN
+# nen khong nam trong dien sed; chi nginx conf + docs la phai sed vi nginx
+# khong doc bien moi truong trong config.
+#
+# Bat buoc working tree sach: day la sed toan repo, phai co commit de rollback.
+domain-set:
+	@test -n "$(d)" || { echo "thieu d=<domain-moi>, vd: d=mycompany.local"; exit 1; }
+	@test -n "$(DOMAIN)" || { echo "DOMAIN chua set trong .env"; exit 1; }
+	@test "$(d)" != "$(DOMAIN)" || { echo "d trung DOMAIN hien tai, khong lam gi"; exit 1; }
+	@git diff --quiet HEAD 2>/dev/null || { \
+		echo "working tree con thay doi chua commit."; \
+		echo "commit truoc da — sed toan repo can co diem rollback."; exit 1; }
+	@esc=$$(printf '%s' '$(DOMAIN)' | sed 's/\./\\./g'); \
+	 files=$$(git ls-files -z | xargs -0 grep -l "$$esc" 2>/dev/null); \
+	 test -n "$$files" || { echo "khong file nao chua $(DOMAIN)"; exit 1; }; \
+	 echo "sed $(DOMAIN) -> $(d) trong:"; \
+	 printf '%s\n' "$$files" | sed 's/^/  /'; \
+	 printf '%s\n' "$$files" | xargs sed -i "s/$$esc/$(d)/g"
+	@sed -i 's/^DOMAIN=.*/DOMAIN=$(d)/' .env .env.example
+	@rm -f $(ZONE)
+	@echo ""
+	@echo "xong. Buoc tiep:"
+	@echo "  1. make dns-init          sinh lai zone cho $(d)"
+	@echo "  2. make cert-init         cert cu chi phu domain cu, phai sinh lai"
+	@echo "  3. make test && make reload"
+	@echo "  4. git diff               doc lai truoc khi commit"
+	@:
+
+# Sinh CA rieng + wildcard cert. Dung khi khong co san root CA cua cong ty.
+# KHONG ghi de cert dang co tru khi force=1: self.key bi gitignore nen ghi de
+# la mat vinh vien, git khong cuu duoc.
+cert-init:
+	@d='$(if $(d),$(d),$(DOMAIN))'; \
+	 test -n "$$d" || { echo "thieu d=<domain> va DOMAIN cung trong"; exit 1; }; \
+	 if [ -f "$(SSL)/self.crt" ] && [ "$(force)" != "1" ]; then \
+		echo "$(SSL)/self.crt DA TON TAI. Cert hien tai:"; \
+		openssl x509 -in $(SSL)/self.crt -noout -subject -issuer -ext subjectAltName | sed 's/^/  /'; \
+		echo ""; \
+		echo "Ghi de la mat self.key vinh vien (file nay bi gitignore)."; \
+		echo "Chac chan thi: make cert-init d=$$d force=1"; \
+		exit 1; \
+	 fi; \
+	 ext=$$(mktemp); \
+	 printf 'subjectAltName=DNS:%s,DNS:*.%s\nextendedKeyUsage=serverAuth\nkeyUsage=critical,digitalSignature,keyEncipherment\nbasicConstraints=critical,CA:FALSE\n' "$$d" "$$d" > "$$ext"; \
+	 csr=$$(mktemp); \
+	 openssl req -x509 -newkey rsa:4096 -sha256 -days 7300 -nodes \
+		-keyout $(SSL)/ca.key -out $(SSL)/ca.crt \
+		-subj "/CN=$$d Dev Root CA/O=$$d" \
+		-addext 'basicConstraints=critical,CA:TRUE' \
+		-addext 'keyUsage=critical,keyCertSign,cRLSign' 2>/dev/null; \
+	 openssl req -newkey rsa:2048 -sha256 -nodes \
+		-keyout $(SSL)/self.key -out "$$csr" \
+		-subj "/CN=*.$$d" 2>/dev/null; \
+	 openssl x509 -req -in "$$csr" -CA $(SSL)/ca.crt -CAkey $(SSL)/ca.key \
+		-CAcreateserial -days 3650 -sha256 -extfile "$$ext" \
+		-out $(SSL)/self.crt 2>/dev/null; \
+	 rm -f "$$ext" "$$csr" $(SSL)/ca.srl; \
+	 chmod 600 $(SSL)/ca.key $(SSL)/self.key; \
+	 echo "sinh xong cho $$d:"; \
+	 echo "  $(SSL)/ca.crt    <- CAI FILE NAY vao may/dien thoai can xem demo"; \
+	 echo "  $(SSL)/ca.key    <- private key cua CA, gitignore, dung de mat"; \
+	 echo "  $(SSL)/self.crt  $(SSL)/self.key"; \
+	 echo ""; \
+	 openssl verify -CAfile $(SSL)/ca.crt $(SSL)/self.crt; \
+	 openssl x509 -in $(SSL)/self.crt -noout -subject -issuer -dates -ext subjectAltName
+	@echo ""
+	@echo "Roi: make test && make reload"
 	@:
 
 ##############################################################
@@ -100,11 +179,13 @@ cert:
 ##############################################################
 dns-init:
 	@test -n "$(HOST_IP)" || { echo "HOST_IP chua set trong .env"; exit 1; }
-	@sed 's/__HOST_IP__/$(HOST_IP)/g' $(ZONE).example > $(ZONE)
-	@echo "wrote $(ZONE) -> $(HOST_IP)"
+	@test -n "$(DOMAIN)" || { echo "DOMAIN chua set trong .env"; exit 1; }
+	@sed 's/__DOMAIN__/$(DOMAIN)/g; s/__HOST_IP__/$(HOST_IP)/g' \
+		tools/coredns/zones/zone.db.example > $(ZONE)
+	@echo "wrote $(ZONE) -> $(DOMAIN) @ $(HOST_IP)"
 	@:
 dns-test:
-	@dig +short @$(HOST_IP) whatever.thomson.cba || true
+	@dig +short @$(HOST_IP) whatever.$(DOMAIN) || true
 	@dig +short @$(HOST_IP) example.com || true
 	@:
 

@@ -1,8 +1,11 @@
-# DNS nội bộ cho *.thomson.cba — bê từ docker-starfish/tools/coredns.
+# DNS nội bộ cho *.${DOMAIN} — bê từ docker-starfish/tools/coredns.
 # Giải quyết bước setup thủ công "sửa hosts file từng máy client":
 # mọi máy trong LAN chỉ cần trỏ DNS về IP host là truy cập được.
+#
+# `{$DOMAIN}` là env var substitution của CoreDNS — biến truyền từ compose,
+# nên file này KHÔNG hardcode domain, đổi công ty không phải sửa ở đây.
 
-thomson.cba:53 {
+{$DOMAIN}:53 {
     # `ra` = recursion available. Client resolver (nhất là Windows) nhìn cờ này
     # để quyết định có tin server hay không.
     header {
@@ -10,7 +13,7 @@ thomson.cba:53 {
     }
 
     root /etc/coredns/zones
-    file thomson.cba.db thomson.cba
+    file {$DOMAIN}.db {$DOMAIN}
 
     log
     errors

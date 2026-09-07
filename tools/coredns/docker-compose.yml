@@ -1,6 +1,6 @@
-# DNS nội bộ cho *.thomson.cba.
+# DNS nội bộ cho *.${DOMAIN} — domain lấy từ .env, không hardcode.
 #
-# LƯU Ý: LAN công ty (10.11.11.10/11) ĐÃ resolve wildcard *.thomson.cba về
+# LƯU Ý: LAN công ty (10.11.11.10/11) ĐÃ resolve wildcard *.${DOMAIN} về
 # HOST_IP rồi, nên trong mạng này service này là DƯ. Nó chỉ cần khi demo ở
 # mạng khác (nhà, office khách, hotspot) — lúc đó bật lên và trỏ DNS của client
 # về HOST_IP.
@@ -17,6 +17,10 @@ services:
     container_name: env-coredns
     restart: unless-stopped
     command: -conf /etc/coredns/Corefile
+    environment:
+      # Corefile dùng `{$$DOMAIN}` (env substitution của CoreDNS) nên file đó
+      # không hardcode domain.
+      DOMAIN: ${DOMAIN}
     # Bind riêng vào IP LAN, KHÔNG bind 0.0.0.0 — host đang chạy
     # systemd-resolved ở 127.0.0.53:53. Bind all là "address already in use".
     ports:

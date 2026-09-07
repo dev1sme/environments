@@ -1,6 +1,9 @@
 .data/
 .env
 tools/ssl-cert/self.key
+# CA sinh boi `make cert-init` — private key, tuyet doi khong commit.
+tools/ssl-cert/ca.key
+tools/ssl-cert/*.srl
 
 # Zone file thật chứa IP theo từng máy — sinh bằng `make dns-init`.
 # Pattern lấy từ docker-starfish: commit .example, ignore file thật.

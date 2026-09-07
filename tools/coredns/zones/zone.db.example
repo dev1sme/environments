@@ -1,17 +1,17 @@
-; Zone cho thomson.cba — bản template.
-; Sinh file thật bằng `make dns-init` (thay __HOST_IP__ bằng HOST_IP trong .env).
-; File thật (thomson.cba.db) bị gitignore vì IP khác nhau theo từng máy.
+; Template zone — KHÔNG hardcode domain.
+; `make dns-init` thay __DOMAIN__ / __HOST_IP__ bằng giá trị trong .env
+; rồi ghi ra zones/<DOMAIN>.db (file thật bị gitignore).
 
-$ORIGIN thomson.cba.
+$ORIGIN __DOMAIN__.
 $TTL 86400
-@   IN  SOA dns.thomson.cba. root.thomson.cba. (
+@   IN  SOA dns.__DOMAIN__. root.__DOMAIN__. (
         2026090700 ; Serial — tăng mỗi lần sửa zone
         7200       ; Refresh
         3600       ; Retry
         1209600    ; Expire
         3600       ; Minimum TTL
 )
-@       IN  NS  dns.thomson.cba.
+@       IN  NS  dns.__DOMAIN__.
 
 @       IN  A   __HOST_IP__
 dns     IN  A   __HOST_IP__
