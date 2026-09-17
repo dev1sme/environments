@@ -23,5 +23,8 @@ services:
     volumes:
       - ../../.data/postgres:/var/lib/postgresql/data
       - ./init:/docker-entrypoint-initdb.d:ro
+      # Alias timezone cũ "Japan": Debian 13 không cài tzdata-legacy, mà app winboard
+      # gửi TimeZone=Japan lúc kết nối (TimeZone.setDefault("Japan")) → thiếu thì FATAL.
+      - /usr/share/zoneinfo/Asia/Tokyo:/usr/share/zoneinfo/Japan:ro
     networks:
       - env-net
