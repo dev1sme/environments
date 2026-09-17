@@ -17,3 +17,6 @@ tools/proxy/auth/*
 # vhost cua app cu the — cau hinh local, khong thuoc repo moi truong.
 tools/proxy/conf.d/vhosts/*
 !tools/proxy/conf.d/vhosts/.gitkeep
+
+projects/*
+!projects/_example/*
