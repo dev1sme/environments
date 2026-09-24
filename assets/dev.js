@@ -96,15 +96,52 @@
                 "width:" + h + "px",
                 "height:" + h + "px",
                 "line-height:0",
+                // Collapsing slides the ribbon diagonally into the corner.
+                "transition:" + (M() ? "none" : "transform .35s cubic-bezier(.2,.8,.2,1)"),
             ].join(";")));
         var E = document.createElement("img");
         ((E.src = F),
             (E.alt = g),
-            (E.style.cssText = "display:block;width:100%;height:100%"),
+            (E.title = "Bấm để thu gọn / mở"),
+            // Only the ribbon itself takes clicks (clip-path follows the SVG band);
+            // the transparent rest of the square stays click-through.
+            (E.style.cssText =
+                "display:block;width:100%;height:100%;pointer-events:auto;cursor:pointer;" +
+                "clip-path:polygon(0 0,56.25% 0,100% 43.75%,100% 100%)"),
+            E.addEventListener("click", function () {
+                S(!P(), !0);
+            }),
             y.appendChild(E),
+            S("1" === k("get"), !1),
             document.body
                 ? I()
                 : document.addEventListener("DOMContentLoaded", I));
+    }
+    // Collapsed: pushed 18/48 of the viewBox towards the corner, leaving a small
+    // tip of the band on screen to click and bring it back.
+    function S(t, e) {
+        ((y.style.transform = t ? "translate(37.5%,-37.5%)" : "none"),
+            (y.dataset.collapsed = t ? "1" : "0"),
+            e && k("set", t ? "1" : "0"));
+    }
+    function P() {
+        return "1" === y.dataset.collapsed;
+    }
+    function M() {
+        try {
+            return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        } catch (t) {
+            return !1;
+        }
+    }
+    // localStorage can throw (privacy mode, sandboxed iframes); without it the
+    // badge just starts expanded on every load.
+    function k(t, e) {
+        try {
+            if ("get" === t) return localStorage.getItem("env-badge-collapsed");
+            localStorage.setItem("env-badge-collapsed", e);
+        } catch (t) {}
+        return null;
     }
     function b(t, e) {
         var n = d && d.getAttribute ? d.getAttribute("data-" + t) : null,
