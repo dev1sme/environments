@@ -1,8 +1,31 @@
-# Mô tả target cho `make help` và `make menu`.
-# Format:  target | biến | mô tả
-#   @Tên nhóm      -> tiêu đề nhóm
-#   biến [x=...]   -> tuỳ chọn; không ngoặc -> bắt buộc (menu sẽ hỏi)
-# Target không có ở đây thì ẩn khỏi help/menu (build, sh, clean, cg-sh...).
+# Mô tả target cho `make help` và `make menu`. Sửa xong chạy `make help-check`.
+#
+# Target:   target | biến | mô tả
+#   @Tên nhóm        -> tiêu đề nhóm
+#   biến x=vd        -> bắt buộc, menu sẽ hỏi;  [x=vd] -> tuỳ chọn
+#   mô tả bắt đầu ⚠  -> hiện màu vàng, dùng cho lệnh nguy hiểm
+#
+# Biến:     !var tên[@glob-target] | tiêu đề | nguồn
+#   nguồn = lệnh shell  -> mỗi dòng 1 gợi ý (thêm "\t tag" nếu muốn), chạy ở
+#                          thư mục repo, đã nạp sẵn .env
+#           confirm     -> hỏi Có/Không, Có thì truyền tên=vd
+#           skip        -> không hỏi (target tự hỏi, vd password)
+#           để trống    -> nhập tay
+#   @glob: chỉ áp cho target khớp glob. Dòng khớp đầu tiên thắng -> để cụ thể lên trước.
+#   Biến không có !var -> nhập tay, tiêu đề là tên biến.
+#
+# Ẩn:       !hide target...   -> có trong makefile nhưng cố ý không hiện
+
+!var n        | Service (n)    | docker compose config --services
+!var p@cg-*   | Project (p)    | find "$PROJECTS_ROOT" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort
+!var p        | Project (p)    | find projects -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort
+!var f        | File dump (f)  | ls -1t .data/dump/* | while read -r f; do printf '%s\t%s\n' "$f" "$(du -h "$f" | cut -f1)"; done
+!var d        | Domain (d)     |
+!var u        | User (u)       |
+!var force    | Ghi đè cert đang có? (force=1) | confirm
+!var pw       |                | skip
+
+!hide help menu help-check build sh clean cg-sh cg-ui
 
 @Core
 up          |                    | bật proxy + postgres + coredns
@@ -18,7 +41,7 @@ test        |                    | nginx -t, check config trước khi reload
 reload      |                    | reload nginx, KHÔNG đứt kết nối
 
 @Portability
-domain-set  | d=new.local        | đổi domain nội bộ (sed toàn repo)
+domain-set  | d=new.local        | ⚠ đổi domain nội bộ (sed toàn repo, cần commit trước)
 cert-init   | [d=...] [force=1]  | sinh CA riêng + wildcard cert
 cert        |                    | xem cert hiện tại
 
@@ -30,7 +53,7 @@ dns-test    |                    | dig thử 1 domain qua coredns
 psql        |                    | vào psql
 db          | p=myapp            | tạo database cho app đang chạy
 db-dump     |                    | pg_dumpall + gzip ra .data/dump/
-db-restore  | f=<file>           | restore (chỉ trên cluster mới init)
+db-restore  | f=<file>           | ⚠ restore (chỉ trên cluster mới init)
 
 @App
 app-up      | p=myapp            | build + up projects/myapp

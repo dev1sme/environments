@@ -11,13 +11,15 @@ SSL=tools/ssl-cert
 DUMP=.data/dump
 CG_UI_PORT=4747
 
-.PHONY: help menu domain-set cert-init db-dump db-restore up down rs reup build logs ls bash sh test reload cert dns-init dns-test psql db app-up app-down app-logs clean cg-up cg-down cg-build cg-index cg-status cg-ui cg-auth cg-mcp cg-sh
+.PHONY: help menu help-check domain-set cert-init db-dump db-restore up down rs reup build logs ls bash sh test reload cert dns-init dns-test psql db app-up app-down app-logs clean cg-up cg-down cg-build cg-index cg-status cg-ui cg-auth cg-mcp cg-sh
 
 # Giao dien + mo ta tach ra tools/make/. Them target moi: sua targets.txt.
 help:
 	@sh tools/make/help.sh
 menu:
 	@bash tools/make/menu.sh
+help-check:
+	@bash tools/make/check.sh
 
 
 

@@ -10,7 +10,7 @@ Domain nội bộ: `*.$DOMAIN`, khai ở `.env`.
 ```
 docker-compose.yml   CHỈ include, không khai service nào; giữ network env-net
 makefile             shortcut cho mọi thao tác — `make help` / `make menu`
-tools/make/          mô tả target (targets.txt) + script help/menu
+tools/make/          targets.txt = mô tả + quy tắc menu; sửa xong chạy `make help-check`
 .env                 DOMAIN, HOST_IP, POSTGRES_*, PROJECTS_ROOT, HOST_UID/GID
 assets/              static assets dùng chung (dev.js — badge overlay "DEV ENV")
 projects/            mỗi app 1 thư mục, docker-compose riêng
@@ -65,7 +65,8 @@ Không cần thêm DNS record — zone đã có wildcard `*`.
 
 ```bash
 make help                # danh sach day du
-make menu                # chon lenh bang fzf, tu hoi bien (n=, p=, f=...)
+make menu                # chon lenh bang giao dien, tu hoi bien (n=, p=, f=...)
+make help-check          # kiem tra tools/make/targets.txt khop makefile
 make up / down / rs
 make ls                  # container nao dang chay
 make test                # nginx -t, check config

@@ -4,7 +4,6 @@
 set -eu
 
 FILE="$(dirname "$0")/targets.txt"
-NAME=$(basename "$(cd "$(dirname "$0")/../.." && pwd)")
 
 if [ -t 1 ] && [ -z "${NO_COLOR:-}" ]; then
 	B=$(printf '\033[1m'); C=$(printf '\033[36m'); Y=$(printf '\033[33m')
@@ -13,16 +12,18 @@ else
 	B= C= Y= D= G= K= R=
 fi
 
-printf '%s┌%s  %s%s%s %s· make help%s\n' "$G" "$R" "$B" "$NAME" "$R" "$D" "$R"
+printf '%s┌%s  %s%s%s %s· make help%s\n' "$G" "$R" "$B" "$(basename "$PWD")" "$R" "$D" "$R"
 
 # Cot target/bien la ASCII nen printf cua mawk (dem byte) van thang hang;
 # mo ta co dau nam o cot cuoi, khong can pad.
 awk -F'|' -v B="$B" -v C="$C" -v Y="$Y" -v G="$G" -v K="$K" -v R="$R" '
 function trim(s) { gsub(/^[ \t]+|[ \t]+$/, "", s); return s }
-/^[ \t]*(#|$)/ { next }
-/^@/           { printf "%s│%s\n%s◇%s  %s%s%s\n", G, R, K, R, B, substr($0, 2), R; next }
-{ printf "%s│%s  %s%-12s%s %s%-19s%s %s\n", G, R, C, trim($1), R, Y, trim($2), R, trim($3) }
-' "$FILE"
+/^[ \t]*(#|!|$)/ { next }
+/^@/             { printf "%s│%s\n%s◇%s  %s%s%s\n", G, R, K, R, B, substr($0, 2), R; next }
+{
+	d = trim($3); if (d ~ /^⚠/) d = Y d R
+	printf "%s│%s  %s%-12s%s %s%-19s%s %s\n", G, R, C, trim($1), R, Y, trim($2), R, d
+}' "$FILE"
 
 printf '%s│%s\n' "$G" "$R"
 printf '%s└%s  %smake menu%s %schọn lệnh bằng giao diện ·%s make %s<target>%s %s[biến=giá-trị]%s\n' \

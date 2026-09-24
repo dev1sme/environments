@@ -3,16 +3,21 @@
 # Khong dung `set -e`: (( )) tra 1 khi ket qua = 0 se giet script giua chung.
 set -uo pipefail
 
+# Moi quy tac (bien, goi y, an) nam trong targets.txt — file nay khong gan
+# voi repo nao. Chay tu thu muc cua makefile (make tu cd vao do).
 DIR=$(cd "$(dirname "$0")" && pwd)
-ROOT=$(cd "$DIR/../.." && pwd)
 FILE="$DIR/targets.txt"
-cd "$ROOT"
+. "$DIR/lib.sh"
 
 [ -t 0 ] && [ -t 1 ] || { echo "make menu cần terminal, dùng: make help"; exit 1; }
 
-PROJECTS_ROOT=$(sed -n 's/^PROJECTS_ROOT=//p' .env 2>/dev/null)
-VISIBLE=10                 # so dong toi da cua 1 list
-DANGER=" domain-set db-restore "  # hoi xac nhan truoc khi chay
+parse_targets "$FILE"
+if (( ${#ERRORS[@]} )); then
+	printf '%s sai cú pháp:\n' "$FILE"; printf '  %s\n' "${ERRORS[@]}"
+	echo "Chạy: make help-check"; exit 1
+fi
+
+VISIBLE=10  # so dong toi da cua 1 list
 
 # ---------- mau + ky hieu ----------
 E=$'\033'; NL=$'\n'
@@ -123,9 +128,11 @@ select_ui() {
 			line="$(pad "${L_KEY[i]}" "$kw")"
 			(( tw > 0 )) && line+="  ${DIM}$(pad "${L_TAG[i]}" "$tw")${RST}"
 			if (( k == cur )); then
-				buf+="$BAR  ${GREEN}●${RST} ${CYAN}${line}${RST}  $(trunc "${L_DESC[i]}" "$room") ${YELLOW}${L_HINT[i]}${RST}${NL}"
+				local dc=""; [[ ${L_DESC[i]} == ⚠* ]] && dc=$YELLOW
+				buf+="$BAR  ${GREEN}●${RST} ${CYAN}${line}${RST}  ${dc}$(trunc "${L_DESC[i]}" "$room")${RST} ${YELLOW}${L_HINT[i]}${RST}${NL}"
 			else
-				buf+="$BAR  ${DIM}○${RST} ${line}  ${DIM}$(trunc "${L_DESC[i]}" "$room")${RST}${NL}"
+				local dc=$DIM; [[ ${L_DESC[i]} == ⚠* ]] && dc=$YELLOW
+				buf+="$BAR  ${DIM}○${RST} ${line}  ${dc}$(trunc "${L_DESC[i]}" "$room")${RST}${NL}"
 			fi
 		done
 		(( top + VISIBLE < n )) && buf+="$BAR  ${DIM}  ↓ còn $(( n - top - VISIBLE )) mục${RST}${NL}"
@@ -199,25 +206,9 @@ confirm_ui() {
 }
 
 # ---------- du lieu ----------
-label() {
-	case $1 in
-		n) echo "Service (n)" ;;       p) echo "Project (p)" ;;
-		f) echo "File dump (f)" ;;     d) echo "Domain (d)" ;;
-		u) echo "User (u)" ;;          force) echo "Ghi đè cert đang có? (force=1)" ;;
-		*) echo "$1" ;;
-	esac
-}
-
-# Nguon goi y cho tung bien, moi dong: gia tri \t tag
-choices() {
-	case $1 in
-		n) docker compose config --services 2>/dev/null ;;
-		f) for f in $(ls -1t .data/dump/* 2>/dev/null); do printf '%s\t%s\n' "$f" "$(du -h "$f" | cut -f1)"; done ;;
-		p) case $target in
-			cg-*) [ -n "$PROJECTS_ROOT" ] && find "$PROJECTS_ROOT" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' 2>/dev/null | sort ;;
-			*)    find projects -mindepth 1 -maxdepth 1 -type d -printf '%f\n' 2>/dev/null | sort ;;
-		   esac ;;
-	esac
+# Chay lenh nguon goi y cua !var: o thu muc repo, nap .env (KEY=VALUE).
+run_source() {
+	bash -c 'set -a; [ -f .env ] && . ./.env; set +a; eval "$1"' _ "$1" 2>/dev/null
 }
 
 load_list() {  # doc "gia tri \t tag" tu stdin vao L_*
@@ -230,41 +221,33 @@ load_list() {  # doc "gia tri \t tag" tu stdin vao L_*
 }
 
 # ---------- flow ----------
-printf '%s┌%s  %s%s%s %s· make menu%s\n%s\n' "$GRAY" "$RST" "$BOLD" "$(basename "$ROOT")" "$RST" "$DIM" "$RST" "$BAR"
+printf '%s┌%s  %s%s%s %s· make menu%s\n%s\n' "$GRAY" "$RST" "$BOLD" "$(basename "$PWD")" "$RST" "$DIM" "$RST" "$BAR"
 
-L_KEY=() L_TAG=() L_DESC=() L_HINT=() ARGS=()
-declare -A DESC_OF SPEC_OF
-trim() { local s=$1; s=${s#"${s%%[![:space:]]*}"}; printf '%s' "${s%"${s##*[![:space:]]}"}"; }
-while IFS='|' read -r t a d; do
-	t=$(trim "$t")
-	[[ -z $t || $t == \#* ]] && continue
-	if [[ $t == @* ]]; then group=${t#@}; continue; fi
-	a=$(trim "$a"); d=$(trim "$d")
-	L_KEY+=("$t"); L_TAG+=("$group"); L_DESC+=("$d"); L_HINT+=("$a")
-	DESC_OF[$t]=$d; SPEC_OF[$t]=$a
-done < "$FILE"
+L_KEY=("${T_NAME[@]}") L_TAG=("${T_GROUP[@]}") L_DESC=("${T_DESC[@]}") L_HINT=("${T_SPEC[@]}") ARGS=()
 
 select_ui "Chọn lệnh" 0
 target=$PICK
-done_step "Chọn lệnh" "$target — ${DESC_OF[$target]}"
+for i in "${!T_NAME[@]}"; do [[ ${T_NAME[i]} == "$target" ]] && ti=$i; done
+done_step "Chọn lệnh" "$target — ${T_DESC[ti]}"
 
-for tok in ${SPEC_OF[$target]}; do
+for tok in ${T_SPEC[ti]}; do
 	optional=0
 	[[ $tok == \[* ]] && optional=1
 	tok=${tok#[}; tok=${tok%]}
 	name=${tok%%=*}; example=${tok#*=}
-	# cg-auth tu hoi password (an ky tu) — khong nhan o day.
-	[[ $name == pw ]] && continue
-	title=$(label "$name")
+	find_var "$name" "$target"
+	title=${VT:-$name}
 
-	if [[ $name == force ]]; then
-		confirm_ui "$title" 0
-		done_step "$title" "$( (( PICK )) && echo Có || echo Không)"
-		(( PICK )) && ARGS+=("force=1")
-		continue
-	fi
+	case $VS in
+		skip) continue ;;
+		confirm)
+			confirm_ui "$title" 0
+			done_step "$title" "$( (( PICK )) && echo Có || echo Không)"
+			(( PICK )) && ARGS+=("$name=$example")
+			continue ;;
+	esac
 
-	hints=$(choices "$name")
+	hints=""; [[ -n $VS ]] && hints=$(run_source "$VS")
 	if [[ -n $hints ]]; then
 		load_list <<<"$hints"
 		select_ui "$title" 1
@@ -284,12 +267,6 @@ for tok in ${SPEC_OF[$target]}; do
 done
 
 cmd="make $target${ARGS[*]:+ ${ARGS[*]}}"
-if [[ $DANGER == *" $target "* ]]; then
-	confirm_ui "Chạy ${cmd}?" 0
-	(( PICK )) || cancel
-	done_step "Chạy ${cmd}?" "Có"
-fi
-
 printf '%s└%s  %s$ %s%s\n\n' "$GRAY" "$RST" "$CYAN" "$cmd" "$RST"
 cleanup
 trap - EXIT INT
