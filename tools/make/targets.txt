@@ -1,0 +1,47 @@
+# Mo ta target cho `make help` va `make menu`.
+# Format:  target | bien | mo ta
+#   @Ten nhom      -> tieu de nhom
+#   bien [x=...]   -> tuy chon; khong ngoac -> bat buoc (menu se hoi)
+# Target khong co o day thi an khoi help/menu (build, sh, clean, cg-sh...).
+
+@Core
+up          |                    | bat proxy + postgres + coredns
+down        |                    | tat het
+rs          |                    | down roi up lai
+reup        | n=proxy            | rebuild + up 1 service
+logs        | n=proxy            | xem log (follow)
+ls          |                    | liet ke container dang chay
+bash        | n=proxy            | vao shell container
+
+@Proxy
+test        |                    | nginx -t, check config truoc khi reload
+reload      |                    | reload nginx, KHONG dut ket noi
+
+@Portability
+domain-set  | d=new.local        | doi domain noi bo (sed toan repo)
+cert-init   | [d=...] [force=1]  | sinh CA rieng + wildcard cert
+cert        |                    | xem cert hien tai
+
+@DNS
+dns-init    |                    | sinh zone file tu HOST_IP trong .env
+dns-test    |                    | dig thu 1 domain qua coredns
+
+@DB
+psql        |                    | vao psql
+db          | p=myapp            | tao database cho app dang chay
+db-dump     |                    | pg_dumpall + gzip ra .data/dump/
+db-restore  | f=<file>           | restore (chi tren cluster moi init)
+
+@App
+app-up      | p=myapp            | build + up projects/myapp
+app-down    | p=myapp            | tat projects/myapp
+app-logs    | p=myapp            | log cua projects/myapp
+
+@codegraph
+cg-build    |                    | build image
+cg-up       |                    | bat container
+cg-down     |                    | tat container
+cg-auth     | u=<user> [pw=...]  | sinh htpasswd cho UI
+cg-index    | p=<project>        | index 1 project
+cg-status   | p=<project>        | trang thai index
+cg-mcp      | p=<project>        | in config MCP

@@ -11,49 +11,13 @@ SSL=tools/ssl-cert
 DUMP=.data/dump
 CG_UI_PORT=4747
 
-.PHONY: help domain-set cert-init db-dump db-restore up down rs reup build logs ls bash sh test reload cert dns-init dns-test psql db app-up app-down app-logs clean cg-up cg-down cg-build cg-index cg-status cg-ui cg-auth cg-mcp cg-sh
+.PHONY: help menu domain-set cert-init db-dump db-restore up down rs reup build logs ls bash sh test reload cert dns-init dns-test psql db app-up app-down app-logs clean cg-up cg-down cg-build cg-index cg-status cg-ui cg-auth cg-mcp cg-sh
 
+# Giao dien + mo ta tach ra tools/make/. Them target moi: sua targets.txt.
 help:
-	@echo "Core:"
-	@echo "  make up                    bat proxy + postgres + coredns"
-	@echo "  make down                  tat het"
-	@echo "  make rs                    down roi up lai"
-	@echo "  make reup n=proxy          rebuild + up 1 service"
-	@echo "  make logs n=proxy          xem log (follow)"
-	@echo "  make ls                    liet ke container dang chay"
-	@echo "  make bash n=proxy          vao shell container"
-	@echo ""
-	@echo "Proxy:"
-	@echo "  make test                  nginx -t, check config truoc khi reload"
-	@echo "  make reload                reload nginx, KHONG dut ket noi"
-	@echo ""
-	@echo "Portability:"
-	@echo "  make domain-set d=new.local  doi domain noi bo (sed toan repo)"
-	@echo "  make cert-init [d=...]       sinh CA rieng + wildcard cert"
-	@echo "  make cert                    xem cert hien tai"
-	@echo ""
-	@echo "DNS:"
-	@echo "  make dns-init              sinh zone file tu HOST_IP trong .env"
-	@echo "  make dns-test              dig thu 1 domain qua coredns"
-	@echo ""
-	@echo "DB:"
-	@echo "  make psql                  vao psql"
-	@echo "  make db p=myapp            tao database cho app dang chay"
-	@echo "  make db-dump               pg_dumpall + gzip ra .data/dump/"
-	@echo "  make db-restore f=<file>   restore (chi tren cluster moi init)"
-	@echo ""
-	@echo "App:"
-	@echo "  make app-up p=myapp        build + up projects/myapp"
-	@echo "  make app-down p=myapp      tat projects/myapp"
-	@echo "  make app-logs p=myapp      log cua projects/myapp"
-	@echo ""
-	@echo "codegraph:"
-	@echo "  make cg-build              build image"
-	@echo "  make cg-up / cg-down       bat/tat container"
-	@echo "  make cg-auth u=<user>      sinh htpasswd cho UI"
-	@echo "  make cg-index p=<project>      index 1 project"
-	@echo "  make cg-status p=<project>     trang thai index"
-	@echo "  make cg-mcp p=<project>        in config MCP"
+	@sh tools/make/help.sh
+menu:
+	@bash tools/make/menu.sh
 
 
 
