@@ -1,4 +1,5 @@
-.data/
+.claude
+.data
 .env
 tools/ssl-cert/self.key
 # CA sinh boi `make cert-init` — private key, tuyet doi khong commit.
