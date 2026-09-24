@@ -35,6 +35,8 @@ printf '%s' "$E[?25l"
 # ---------- ve ----------
 DRAWN=0      # so dong cua khoi dang hien, de xoa va ve lai
 STEP=""      # tieu de buoc hien tai, dung khi huy
+BACK_OK=0    # 1: Esc = quay lai buoc truoc (widget tra 2); 0: Esc = thoat
+DONE_LINES=3 # so dong 1 khoi ◇ cua done_step
 
 # draw BUF: xoa khoi cu (DRAWN dong) roi in BUF (moi dong ket thuc bang \n).
 draw() {
@@ -44,11 +46,18 @@ draw() {
 	DRAWN=${#only_nl}
 }
 
-# Chot buoc: thu gon thanh ◇ + gia tri, khoi nay khong bi xoa nua.
+# Chot buoc: thu gon thanh ◇ + gia tri (DONE_LINES dong). Cat theo be ngang
+# de khong xuong dong — quay lai buoc truoc can biet chinh xac so dong de xoa.
 done_step() {
-	draw "${GREEN}◇${RST}  $1${NL}$BAR  ${DIM}$2${RST}${NL}$BAR${NL}"
+	local cols; cols=$(stty size 2>/dev/null | cut -d" " -f2); cols=${cols:-80}
+	draw "${GREEN}◇${RST}  $(trunc "$1" $(( cols - 4 )))${NL}$BAR  ${DIM}$(trunc "$2" $(( cols - 4 )))${RST}${NL}$BAR${NL}"
 	DRAWN=0
 }
+
+# Xoa khoi ◇ ngay tren khoi dang hien — lan draw ke tiep ve de len do.
+undo_step() { DRAWN=$(( DRAWN + DONE_LINES )); }
+
+esc_hint() { (( BACK_OK )) && printf 'Esc quay lại · Ctrl-C thoát' || printf 'Esc thoát'; }
 
 cancel() {
 	draw "${RED}■${RST}  ${STEP}${NL}${GRAY}└${RST}  ${RED}Đã huỷ${RST}${NL}"
@@ -79,17 +88,20 @@ readkey() {
 }
 
 # ---------- widget ----------
-# select_ui TITLE CUSTOM
+# select_ui TITLE CUSTOM [INIT]
 #   Dung mang L_KEY/L_TAG/L_DESC/L_HINT. CUSTOM=1 cho phep dung chu da go.
-#   Ket qua: PICK (gia tri).
+#   INIT: gia tri chon san (co trong list -> dat con tro, khong -> dien vao o tim).
+#   Ket qua: PICK (gia tri). Return 2 = quay lai.
 select_ui() {
-	local title=$1 custom=$2 q="" cur=0 top=0 i k n buf line kw=0 tw=0 cols room
+	local title=$1 custom=$2 init=${3:-} q="" cur=0 top=0 i k n buf line kw=0 tw=0 cols room
 	local -a idx
 	STEP=$title
 	for i in "${!L_KEY[@]}"; do
 		(( ${#L_KEY[i]} > kw )) && kw=${#L_KEY[i]}
 		(( ${#L_TAG[i]} > tw )) && tw=${#L_TAG[i]}
+		[[ -n $init && ${L_KEY[i]} == "$init" ]] && cur=$i
 	done
+	[[ -n $init && ${L_KEY[cur]:-} != "$init" ]] && q=$init
 
 	while :; do
 		# Khop ten truoc, khop tag/mo ta xep sau — "re" ra reup/reload, khong ra "coredns".
@@ -136,14 +148,14 @@ select_ui() {
 			fi
 		done
 		(( top + VISIBLE < n )) && buf+="$BAR  ${DIM}  ↓ còn $(( n - top - VISIBLE )) mục${RST}${NL}"
-		buf+="${GRAY}└${RST}  ${DIM}↑/↓ chọn · gõ để lọc · Enter chọn · Esc thoát${RST}${NL}"
+		buf+="${GRAY}└${RST}  ${DIM}↑/↓ chọn · gõ để lọc · Enter chọn · $(esc_hint)${RST}${NL}"
 		draw "$buf"
 
 		readkey
 		case $KEY in
 			up)    (( cur > 0 )) && cur=$(( cur - 1 )) ;;
 			down)  (( cur < n - 1 )) && cur=$(( cur + 1 )) ;;
-			esc)   cancel ;;
+			esc)   (( BACK_OK )) && return 2; cancel ;;
 			bs)    q=${q%?}; cur=0 ;;
 			enter)
 				(( n == 0 )) && continue
@@ -156,12 +168,12 @@ select_ui() {
 	done
 }
 
-# text_ui TITLE PLACEHOLDER OPTIONAL -> PICK
+# text_ui TITLE PLACEHOLDER OPTIONAL [INIT] -> PICK. Return 2 = quay lai.
 text_ui() {
-	local title=$1 ph=$2 opt=$3 q="" err="" buf hint
+	local title=$1 ph=$2 opt=$3 q=${4:-} err="" buf hint
 	STEP=$title
-	hint="Enter xác nhận · Esc thoát"
-	(( opt )) && hint="Enter để trống = bỏ qua · Esc thoát"
+	hint="Enter xác nhận · $(esc_hint)"
+	(( opt )) && hint="Enter để trống = bỏ qua · $(esc_hint)"
 	while :; do
 		buf="${CYAN}◆${RST}  ${BOLD}${title}${RST}${NL}"
 		if [[ -n $q ]]; then buf+="$BAR  ${q}${INV} ${RST}${NL}"
@@ -172,7 +184,7 @@ text_ui() {
 
 		readkey
 		case $KEY in
-			esc)   cancel ;;
+			esc)   (( BACK_OK )) && return 2; cancel ;;
 			bs)    q=${q%?} ;;
 			enter)
 				if [[ -z $q ]] && (( ! opt )); then err="Bắt buộc nhập"; continue; fi
@@ -183,7 +195,7 @@ text_ui() {
 	done
 }
 
-# confirm_ui TITLE DEFAULT(0|1) -> PICK=1|0
+# confirm_ui TITLE DEFAULT(0|1) -> PICK=1|0. Return 2 = quay lai.
 confirm_ui() {
 	local title=$1 yes=$2 buf a b
 	STEP=$title
@@ -191,7 +203,7 @@ confirm_ui() {
 		if (( yes )); then a="${GREEN}●${RST} Có"; b="${DIM}○ Không${RST}"
 		else a="${DIM}○ Có${RST}"; b="${GREEN}●${RST} Không"; fi
 		buf="${CYAN}◆${RST}  ${BOLD}${title}${RST}${NL}$BAR  $a ${DIM}/${RST} $b${NL}"
-		buf+="${GRAY}└${RST}  ${DIM}←/→ chọn · Enter xác nhận · Esc thoát${RST}${NL}"
+		buf+="${GRAY}└${RST}  ${DIM}←/→ chọn · Enter xác nhận · $(esc_hint)${RST}${NL}"
 		draw "$buf"
 
 		readkey
@@ -199,7 +211,7 @@ confirm_ui() {
 			left|right|up|down) yes=$(( 1 - yes )) ;;
 			y|Y|c|C) yes=1 ;;
 			n|N|k|K) yes=0 ;;
-			esc)     cancel ;;
+			esc)     (( BACK_OK )) && return 2; cancel ;;
 			enter)   PICK=$yes; return ;;
 		esac
 	done
@@ -223,48 +235,77 @@ load_list() {  # doc "gia tri \t tag" tu stdin vao L_*
 # ---------- flow ----------
 printf '%s┌%s  %s%s%s %s· make menu%s\n%s\n' "$GRAY" "$RST" "$BOLD" "$(basename "$PWD")" "$RST" "$DIM" "$RST" "$BAR"
 
-L_KEY=("${T_NAME[@]}") L_TAG=("${T_GROUP[@]}") L_DESC=("${T_DESC[@]}") L_HINT=("${T_SPEC[@]}") ARGS=()
+# Buoc 0 = chon target, buoc 1..N = tung bien. Esc o buoc >= 1 lui lai.
+# VAL[s]: gia tri da chon (dien san khi quay lai), ARG[s]: "ten=gia-tri" hoac rong,
+# SHOWN[s]=1 neu buoc s dang co khoi ◇ tren man hinh (buoc skip thi khong).
+step=0 target="" ti=0
+TOKS=() VAL=() ARG=() SHOWN=()
+while :; do
+	if (( step == 0 )); then
+		BACK_OK=0
+		L_KEY=("${T_NAME[@]}") L_TAG=("${T_GROUP[@]}") L_DESC=("${T_DESC[@]}") L_HINT=("${T_SPEC[@]}")
+		select_ui "Chọn lệnh" 0 "$target"
+		# Doi target -> bo gia tri cu; giu target -> van dien san.
+		[[ $PICK != "$target" ]] && VAL=() ARG=()
+		target=$PICK
+		for i in "${!T_NAME[@]}"; do [[ ${T_NAME[i]} == "$target" ]] && ti=$i; done
+		read -ra TOKS <<<"${T_SPEC[ti]}"
+		done_step "Chọn lệnh" "$target — ${T_DESC[ti]}"
+		SHOWN[0]=1; step=1
+		continue
+	fi
+	(( step > ${#TOKS[@]} )) && break
 
-select_ui "Chọn lệnh" 0
-target=$PICK
-for i in "${!T_NAME[@]}"; do [[ ${T_NAME[i]} == "$target" ]] && ti=$i; done
-done_step "Chọn lệnh" "$target — ${T_DESC[ti]}"
-
-for tok in ${T_SPEC[ti]}; do
+	tok=${TOKS[step - 1]}
 	optional=0
 	[[ $tok == \[* ]] && optional=1
 	tok=${tok#[}; tok=${tok%]}
 	name=${tok%%=*}; example=${tok#*=}
 	find_var "$name" "$target"
 	title=${VT:-$name}
+	BACK_OK=1 SHOWN[step]=0 rc=0
 
 	case $VS in
-		skip) continue ;;
+		skip)
+			ARG[step]=""; step=$(( step + 1 )); continue ;;
 		confirm)
-			confirm_ui "$title" 0
-			done_step "$title" "$( (( PICK )) && echo Có || echo Không)"
-			(( PICK )) && ARGS+=("$name=$example")
-			continue ;;
+			confirm_ui "$title" "${VAL[step]:-0}"; rc=$?
+			if (( rc == 0 )); then
+				VAL[step]=$PICK
+				(( PICK )) && ARG[step]="$name=$example" || ARG[step]=""
+				shown=$( (( PICK )) && echo Có || echo Không)
+			fi ;;
+		*)
+			hints=""; [[ -n $VS ]] && hints=$(run_source "$VS")
+			if [[ -n $hints ]]; then
+				load_list <<<"$hints"
+				select_ui "$title" 1 "${VAL[step]:-}"; rc=$?
+			else
+				ph=$example; [[ $ph == "..." ]] && ph=""
+				(( optional )) || ph="vd: $ph"
+				(( optional )) && ph="${ph:-bỏ trống = mặc định}"
+				text_ui "$title" "$ph" "$optional" "${VAL[step]:-}"; rc=$?
+			fi
+			if (( rc == 0 )); then
+				VAL[step]=$PICK
+				[[ -n $PICK ]] && ARG[step]="$name=$PICK" || ARG[step]=""
+				shown=${PICK:-(bỏ qua)}
+			fi ;;
 	esac
 
-	hints=""; [[ -n $VS ]] && hints=$(run_source "$VS")
-	if [[ -n $hints ]]; then
-		load_list <<<"$hints"
-		select_ui "$title" 1
-	else
-		ph=$example; [[ $ph == "..." ]] && ph=""
-		(( optional )) || ph="vd: $ph"
-		(( optional )) && ph="${ph:-bỏ trống = mặc định}"
-		text_ui "$title" "$ph" "$optional"
-	fi
-
-	if [[ -z $PICK ]]; then
-		done_step "$title" "(bỏ qua)"
+	if (( rc == 2 )); then
+		# Lui ve buoc gan nhat co khoi ◇ (bo qua buoc skip), xoa khoi do.
+		step=$(( step - 1 ))
+		while (( step > 0 && ! ${SHOWN[step]:-0} )); do step=$(( step - 1 )); done
+		undo_step; SHOWN[step]=0
 		continue
 	fi
-	done_step "$title" "$PICK"
-	ARGS+=("$name=$PICK")
+	done_step "$title" "$shown"
+	SHOWN[step]=1; step=$(( step + 1 ))
 done
+
+ARGS=()
+for (( k = 1; k <= ${#TOKS[@]}; k++ )); do [[ -n ${ARG[k]:-} ]] && ARGS+=("${ARG[k]}"); done
 
 cmd="make $target${ARGS[*]:+ ${ARGS[*]}}"
 printf '%s└%s  %s$ %s%s\n\n' "$GRAY" "$RST" "$CYAN" "$cmd" "$RST"
