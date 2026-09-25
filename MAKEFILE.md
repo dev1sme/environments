@@ -7,15 +7,15 @@ Biến trong `[ ]` là tuỳ chọn.
 
 ## Core
 
-| Target | Biến      | Mô tả                                     |
-| ------ | --------- | ----------------------------------------- |
-| `up`   |           | bật proxy + postgres + coredns + homepage |
-| `down` |           | tắt hết                                   |
-| `rs`   |           | down rồi up lại                           |
-| `reup` | `n=proxy` | pull bản mới / rebuild + up 1 service     |
-| `logs` | `n=proxy` | xem log (follow)                          |
-| `ls`   |           | liệt kê container đang chạy               |
-| `bash` | `n=proxy` | vào shell container                       |
+| Target | Biến        | Mô tả                                     |
+| ------ | ----------- | ----------------------------------------- |
+| `up`   |             | bật proxy + postgres + coredns + homepage |
+| `down` | `[n=proxy]` | tắt hết, hoặc chỉ 1 service               |
+| `rs`   |             | down rồi up lại                           |
+| `reup` | `n=proxy`   | pull bản mới / rebuild + up 1 service     |
+| `logs` | `n=proxy`   | xem log (follow)                          |
+| `ls`   |             | liệt kê container đang chạy               |
+| `bash` | `n=proxy`   | vào shell container                       |
 
 ## Proxy
 
@@ -60,9 +60,6 @@ Biến trong `[ ]` là tuỳ chọn.
 
 | Target      | Biến                  | Mô tả                |
 | ----------- | --------------------- | -------------------- |
-| `cg-build`  |                       | build image          |
-| `cg-up`     |                       | bật container        |
-| `cg-down`   |                       | tắt container        |
 | `cg-auth`   | `u=<user>` `[pw=...]` | sinh htpasswd cho UI |
 | `cg-index`  | `p=<project>`         | index 1 project      |
 | `cg-status` | `p=<project>`         | trạng thái index     |

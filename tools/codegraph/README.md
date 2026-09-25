@@ -9,8 +9,9 @@ Repo gốc **không có Dockerfile, không có docker-compose** — cách cài c
 ## Chạy gì
 
 ```bash
-make cg-build                    # build image (lan dau)
-make cg-up                       # bat container
+make up                          # bat ca env, lan dau tu build image codegraph
+make reup n=codegraph            # rebuild sau khi sua Dockerfile
+make down n=codegraph            # tat rieng codegraph
 make cg-index p=<project>        # init + index lan dau, re-index lan sau
 make cg-status p=<project>       # xem trang thai index
 make cg-mcp p=<project>          # in config MCP de dan vao .mcp.json
@@ -150,7 +151,7 @@ Bật lại khi có release chứa `ui`:
 # 2. doi ten vhost
 mv tools/proxy/conf.d/codegraph.conf.dist tools/proxy/conf.d/codegraph.conf
 make cg-auth u=<user>     # basic auth, UI lo cau truc source code — khong truyen pw= thi no hoi, khong vao shell history
-make cg-up && make reload
+make up && make reload
 ```
 
 Vì sao cần socat relay: `codegraph ui` bind cứng `127.0.0.1` (`src/ui-server/constants.ts:21`), chỉ có `--port`, **không có `--host`**. Container khác không với tới loopback của container này. socat chạy `network_mode: "service:codegraph"` nên share netns, thấy đúng loopback đó rồi mở 8080 ra `env-net`.

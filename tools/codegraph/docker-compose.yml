@@ -19,7 +19,7 @@ services:
     # Phải khớp uid host, không thì mkdir .codegraph/ là EACCES
     user: "${HOST_UID}:${HOST_GID}"
     volumes:
-      - ${PROJECTS_ROOT}:${PROJECTS_ROOT}
+      - ${PROJECTS_ROOT:?PROJECTS_ROOT chua set trong .env}:${PROJECTS_ROOT}
     environment:
       # Tắt telemetry, GIỮ update check (DO_NOT_TRACK sẽ tắt cả hai)
       CODEGRAPH_TELEMETRY: "0"

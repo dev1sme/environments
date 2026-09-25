@@ -8,7 +8,7 @@ SSL=tools/ssl-cert
 DUMP=.data/dump
 HOME_CFG=tools/homepage/config
 
-.PHONY: domain-set cert-init db-dump db-restore up down rs reup build logs ls bash sh test reload home-gen cert dns-init dns-test psql db app-up app-down app-logs clean cg-up cg-down cg-build cg-index cg-status cg-ui cg-auth cg-mcp cg-sh
+.PHONY: domain-set cert-init db-dump db-restore up down rs reup build logs ls bash sh test reload home-gen cert dns-init dns-test psql db app-up app-down app-logs clean cg-index cg-status cg-ui cg-auth cg-mcp
 
 # help/menu tu chu thich ## — cu phap: tools/make/README.md
 include tools/make/menu.mk
@@ -26,8 +26,8 @@ include tools/make/menu.mk
 ##@ Core
 up: home-gen     ## bật proxy + postgres + coredns + homepage
 	$(DC) up -d
-down:           ## tắt hết
-	$(DC) down
+down:           ## [n=proxy] | tắt hết, hoặc chỉ 1 service
+	$(DC) $(if $(n),rm -sf $(n),down)
 rs: down up     ## down rồi up lại
 reup:           ## n=proxy | pull bản mới / rebuild + up 1 service
 	$(DC) pull --ignore-buildable $(n)
@@ -162,16 +162,6 @@ app-logs:       ## p=myapp | log của projects/myapp
 	$(DC) -f projects/$(p)/docker-compose.yml logs -f --tail=100
 
 ##@ codegraph
-cg-build:       ## build image
-	@test -n "$(PROJECTS_ROOT)" || { echo "PROJECTS_ROOT chua set trong .env"; exit 1; }
-	$(DC) build codegraph
-cg-up:          ## bật container
-	@test -n "$(PROJECTS_ROOT)" || { echo "PROJECTS_ROOT chua set trong .env"; exit 1; }
-	$(DC) up -d codegraph
-cg-down:        ## tắt container
-	$(DC) rm -sf codegraph
-cg-sh:
-	$(DC) exec codegraph bash
 cg-auth:        ## u=<user> [pw=...] | sinh htpasswd cho UI
 	@test -n "$(u)" || { echo "thieu u=<user>"; exit 1; }
 	@if [ -n "$(pw)" ]; then pw='$(pw)'; \
