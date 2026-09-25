@@ -1,9 +1,23 @@
 ---
-# Link VIẾT TAY (ngoài vhost). services.yaml là file sinh tự động, sửa ở đó sẽ mất.
+# Link VIẾT TAY, hiện bên dưới nhóm Apps. Sửa xong F5 là thấy, không cần reload.
+# services.yaml là file sinh tự động — đừng thêm link vào đó, `make reload` sẽ ghi đè.
 # https://gethomepage.dev/configs/bookmarks/
 #
-# - Docs:
-#     - Homepage:
+# - Nhóm:                         # tên nhóm, hiện thành 1 cột
+#     - Tên link:
+#         - href: https://...     # bắt buộc
+#           abbr: GH              # 2 chữ hiện thay icon
+#           icon: github.png      # hoặc icon (dashboard-icons *.png / mdi-*), thay abbr
+#           description: ...      # dòng chữ nhỏ bên dưới, tuỳ chọn
+#
+# Ví dụ — bỏ dấu # đầu dòng và xoá dòng `[]` cuối file:
+#
+# - Dev env:
+#     - Assets:
+#         - href: https://assets.thomson.cba
+#           icon: mdi-folder-network-outline
+# - Tài liệu:
+#     - Homepage docs:
 #         - href: https://gethomepage.dev
 #           abbr: HP
 []

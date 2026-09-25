@@ -18,7 +18,3 @@ layout:
     icon: mdi-application-braces-outline
     style: row
     columns: 3
-  Tools:
-    icon: mdi-toolbox-outline
-    style: row
-    columns: 3

@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# In services.yaml cho homepage tu tools/proxy/conf.d/*.conf + conf.d/vhosts/*.conf.
+# In services.yaml cho homepage tu tools/proxy/conf.d/vhosts/*.conf.
 # Goi boi `make home-gen` (trong `make up` / `make reload`), khong chay tay.
 #
-# App (vhosts/) va tool (conf.d/) tach 2 nhom. Status: homepage ping ten
+# Chi lay vhost cua app (conf.d/vhosts/) — vhost cua tool trong repo nay
+# (assets, home, ...) khong hien. Status: homepage ping ten
 # upstream qua env-net. Khong dung siteMonitor: HTTP status cua upstream khong
 # noi len app song hay chet (icms / tra 404, homepage chan Host la).
 set -uo pipefail
@@ -14,7 +15,7 @@ cd "$(dirname "${BASH_SOURCE[0]}")/../proxy/conf.d" || exit 1
 parse() {
 	shopt -s nullglob
 	local f
-	for f in *.conf vhosts/*.conf; do
+	for f in vhosts/*.conf; do
 		awk -v file="$f" '
 			{ sub(/#.*/, "") }
 			/listen[[:space:]]+443/          { ssl = 1 }
@@ -38,7 +39,6 @@ parse() {
 # tai tu CDN. Khong khop gi -> mdi-web.
 icon() {
 	case "$1 $2" in
-		home.*)           echo homepage.png ;;
 		*tomcat*)         echo apache-tomcat.png ;;
 		*postgres*|*pg*)  echo postgres.png ;;
 		*codegraph*)      echo mdi-graph-outline ;;
@@ -52,22 +52,18 @@ rows=$(parse)
 
 echo "# SINH TU DONG boi \`make reload\` tu tools/proxy/conf.d — dung sua tay."
 echo "# Link viet tay: bookmarks.yaml"
-for group in Apps Tools; do
-	echo "- $group:"
-	printf '%s\n' "$rows" | while IFS=$'\t' read -r name up file; do
-		[ -n "$name" ] || continue
-		case "$file" in vhosts/*) g=Apps ;; *) g=Tools ;; esac
-		[ "$g" = "$group" ] || continue
-		# http://name:port/path -> name:port/path
-		target=$(printf %s "$up" | sed -E 's#^[a-z]+://##')
-		echo "    - ${name%%.*}:"
-		echo "        href: \"https://$name\""
-		echo "        icon: \"$(icon "$name" "$up")\""
-		case "$up" in
-			static:*) echo "        description: \"$name → static\"" ;;
-			-)        echo "        description: \"$name → ? ($file)\"" ;;
-			*)        echo "        description: \"$name → $target\""
-			          echo "        ping: \"${target%%[:/]*}\"" ;;
-		esac
-	done
+echo "- Apps:"
+printf '%s\n' "$rows" | while IFS=$'\t' read -r name up file; do
+	[ -n "$name" ] || continue
+	# http://name:port/path -> name:port/path
+	target=$(printf %s "$up" | sed -E 's#^[a-z]+://##')
+	echo "    - ${name%%.*}:"
+	echo "        href: \"https://$name\""
+	echo "        icon: \"$(icon "$name" "$up")\""
+	case "$up" in
+		static:*) echo "        description: \"$name → static\"" ;;
+		-)        echo "        description: \"$name → ? ($file)\"" ;;
+		*)        echo "        description: \"$name → $target\""
+		          echo "        ping: \"${target%%[:/]*}\"" ;;
+	esac
 done
