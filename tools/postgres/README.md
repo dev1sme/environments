@@ -85,9 +85,13 @@ CREATE DATABASE appdb OWNER appuser
 Không có `init/` để dựng lại, nên backup là đường duy nhất:
 
 ```bash
-make db-dump                  # pg_dumpall ra .data/dump/<ngay>.sql
+make db-dump                  # pg_dumpall + gzip ra .data/dump/all_<ngay>.sql.gz
 make db-restore f=<file>
 ```
+
+- Dùng `pg_dumpall` chứ không `pg_dump` vì cần cả **role** — restore mà thiếu role thì mất luôn hash md5 của role legacy (xem phần Auth).
+- Luôn gzip: dump plain SQL của DB 1.5GB là rất lớn.
+- **Chỉ restore vào cluster mới init.** Dump có sẵn `CREATE ROLE` / `CREATE DATABASE`, cluster đã có các object đó sẽ báo lỗi trùng. Cách làm: xoá sạch (mục dưới), `make up`, rồi `make db-restore`.
 
 Init script chỉ dựng lại cấu trúc rỗng — backup cứu được cả data.
 

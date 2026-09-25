@@ -9,8 +9,8 @@ Domain nội bộ: `*.$DOMAIN`, khai ở `.env`.
 
 ```
 docker-compose.yml   CHỈ include, không khai service nào; giữ network env-net
-Makefile             shortcut cho mọi thao tác — `make help` / `make menu`
-tools/make/          `mm` — help/menu đọc chú thích ## trong makefile; cú pháp: tools/make/README.md
+Makefile             shortcut cho mọi thao tác — `make menu`, danh sách ở MAKEFILE.md
+tools/make/          `mm` — help/menu đọc chú thích ## trong Makefile
 MAKEFILE.md          danh sách lệnh, sinh bởi `make help-doc` — không sửa tay
 .env                 DOMAIN, HOST_IP, POSTGRES_*, PROJECTS_ROOT, HOST_UID/GID
 assets/              static assets dùng chung (dev.js — badge overlay "DEV ENV")
@@ -62,22 +62,11 @@ Thêm tool mới: tạo `tools/<ten>/docker-compose.yml` + thêm 1 entry vào `i
 
 Không cần thêm DNS record — zone đã có wildcard `*`.
 
-## Lệnh hay dùng
+## Lệnh
 
-```bash
-make help                # danh sach day du
-make menu                # chon lenh bang giao dien, tu hoi bien (n=, p=, f=...)
-make help-check          # kiem tra chu thich ## + MAKEFILE.md con khop
-make help-doc            # sinh lai MAKEFILE.md sau khi sua ##
-make up / down / rs
-make ls                  # container nao dang chay
-make test                # nginx -t, check config
-make reload              # reload nginx, khong dut ket noi dang mo
-make logs n=proxy
-make app-up p=myapp
-make db p=myapp
-make cert                # xem cert het han khi nao, SAN gom domain nao
-```
+Danh sách đầy đủ: [MAKEFILE.md](MAKEFILE.md). Không nhớ lệnh thì `make menu` — chọn bằng giao diện, tự hỏi biến.
+
+Thêm/sửa lệnh: viết chú thích `##` ngay tại target trong `Makefile`, rồi `make help-doc`. Cú pháp: [tools/make/README.md](tools/make/README.md).
 
 ## Đem repo sang môi trường khác
 

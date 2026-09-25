@@ -149,7 +149,7 @@ Bật lại khi có release chứa `ui`:
 #        command: TCP-LISTEN:8080,fork,reuseaddr TCP:127.0.0.1:4747
 # 2. doi ten vhost
 mv tools/proxy/conf.d/codegraph.conf.dist tools/proxy/conf.d/codegraph.conf
-make cg-auth u=<user>     # basic auth, UI lo cau truc source code
+make cg-auth u=<user>     # basic auth, UI lo cau truc source code — khong truyen pw= thi no hoi, khong vao shell history
 make cg-up && make reload
 ```
 
