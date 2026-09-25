@@ -1,24 +1,18 @@
-#!make
-# Biến $(n) = tên service, $(p) = tên app.
 -include .env
 
 DOCKER=docker
 DC=docker compose
 
-# Derive tu DOMAIN trong .env — khong hardcode ten domain o day.
 ZONE=tools/coredns/zones/$(DOMAIN).db
 SSL=tools/ssl-cert
 DUMP=.data/dump
-CG_UI_PORT=4747
 
 .PHONY: domain-set cert-init db-dump db-restore up down rs reup build logs ls bash sh test reload cert dns-init dns-test psql db app-up app-down app-logs clean cg-up cg-down cg-build cg-index cg-status cg-ui cg-auth cg-mcp cg-sh
 
-# help / menu / help-check / help-doc. Mo ta viet bang ## ngay tai target,
-# cu phap: tools/make/README.md. Target khong co ## -> an khoi help/menu.
+# help/menu tu chu thich ## — cu phap: tools/make/README.md
 include tools/make/menu.mk
 .DEFAULT_GOAL := help
 
-# Goi y gia tri cho bien trong menu: #!var ten[@glob-target] | tieu de | nguon
 #!var n        | Service (n)    | docker compose config --services
 #!var p@cg-*   | Project (p)    | find "$PROJECTS_ROOT" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort
 #!var p        | Project (p)    | find projects -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort
@@ -28,57 +22,35 @@ include tools/make/menu.mk
 #!var force    | Ghi đè cert đang có? (force=1) | confirm
 #!var pw       |                | skip
 
-##############################################################
 ##@ Core
-##############################################################
 up:             ## bật proxy + postgres + coredns
 	$(DC) up -d
-	@:
 down:           ## tắt hết
 	$(DC) down
-	@:
 rs: down up     ## down rồi up lại
-	@:
 reup:           ## n=proxy | rebuild + up 1 service
 	$(DC) up -d --build $(n)
-	@:
 build:
 	$(DC) build $(n)
-	@:
 logs:           ## n=proxy | xem log (follow)
 	$(DC) logs -f --tail=100 $(n)
-	@:
 ls:             ## liệt kê container đang chạy
 	$(DOCKER) ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
-	@:
 bash:           ## n=proxy | vào shell container
 	$(DC) exec $(n) bash
-	@:
 sh:
 	$(DC) exec $(n) sh
-	@:
 
-##############################################################
 ##@ Proxy
-##############################################################
-# nginx -s reload voi config sai thi nginx giu config cu va van chay, khong
-# bao loi ro rang — nen `reload` goi `test` truoc. Xem tools/proxy/README.md
 test:           ## nginx -t, check config trước khi reload
 	$(DC) exec proxy nginx -t
-	@:
 reload: test    ## reload nginx, KHÔNG đứt kết nối
 	$(DC) exec proxy nginx -s reload
 	@echo "proxy reloaded"
-	@:
 cert:           ## xem cert hiện tại
 	@openssl x509 -in $(SSL)/self.crt -noout -subject -issuer -dates -ext subjectAltName
-	@:
 
-##############################################################
 ##@ Portability
-# doi domain / sinh cert rieng
-##############################################################
-# Sed toan repo -> bat buoc working tree sach de rollback duoc. Xem README.md
 domain-set:     ## d=new.local | ⚠ đổi domain nội bộ (sed toàn repo, cần commit trước)
 	@test -n "$(d)" || { echo "thieu d=<domain-moi>, vd: d=mycompany.local"; exit 1; }
 	@test -n "$(DOMAIN)" || { echo "DOMAIN chua set trong .env"; exit 1; }
@@ -102,10 +74,6 @@ domain-set:     ## d=new.local | ⚠ đổi domain nội bộ (sed toàn repo, c
 	@echo "  2. make cert-init         cert cu chi phu domain cu, phai sinh lai"
 	@echo "  3. make test && make reload"
 	@echo "  4. git diff               doc lai truoc khi commit"
-	@:
-
-# Tu choi ghi de cert dang co tru khi force=1 (self.key gitignore, mat la mat
-# vinh vien). Xem tools/ssl-cert/README.md
 cert-init:      ## [d=...] [force=1] | sinh CA riêng + wildcard cert
 	@d='$(if $(d),$(d),$(DOMAIN))'; \
 	 test -n "$$d" || { echo "thieu d=<domain> va DOMAIN cung trong"; exit 1; }; \
@@ -142,48 +110,29 @@ cert-init:      ## [d=...] [force=1] | sinh CA riêng + wildcard cert
 	 openssl x509 -in $(SSL)/self.crt -noout -subject -issuer -dates -ext subjectAltName
 	@echo ""
 	@echo "Roi: make test && make reload"
-	@:
 
-##############################################################
 ##@ DNS
-##############################################################
 dns-init:       ## sinh zone file từ HOST_IP trong .env
 	@test -n "$(HOST_IP)" || { echo "HOST_IP chua set trong .env"; exit 1; }
 	@test -n "$(DOMAIN)" || { echo "DOMAIN chua set trong .env"; exit 1; }
 	@sed 's/__DOMAIN__/$(DOMAIN)/g; s/__HOST_IP__/$(HOST_IP)/g' \
 		tools/coredns/zones/zone.db.example > $(ZONE)
 	@echo "wrote $(ZONE) -> $(DOMAIN) @ $(HOST_IP)"
-	@:
 dns-test:       ## dig thử 1 domain qua coredns
 	@dig +short @$(HOST_IP) whatever.$(DOMAIN) || true
 	@dig +short @$(HOST_IP) example.com || true
-	@:
 
-##############################################################
 ##@ DB
-##############################################################
 psql:           ## vào psql
 	$(DC) exec postgres psql -U $(POSTGRES_USER)
-	@:
-# Script trong tools/postgres/init/ chi chay khi .data/postgres con trong.
-# Postgres da chay truoc do thi tao DB bang target nay.
 db:             ## p=myapp | tạo database cho app đang chạy
 	@test -n "$(p)" || { echo "thieu p=<app>"; exit 1; }
 	$(DC) exec postgres psql -U $(POSTGRES_USER) -c "CREATE DATABASE $(p);"
-	@:
-
-# pg_dumpall: gom moi database + role (can role de restore lai role hash md5).
-# Nen nen luon — dump plain SQL cua DB 1.5GB la rat lon.
 db-dump:        ## pg_dumpall + gzip ra .data/dump/
 	@mkdir -p $(DUMP)
 	@f=$(DUMP)/all_$$(date +%Y%m%d_%H%M).sql.gz; \
 	 $(DOCKER) exec env-postgres pg_dumpall -U $(POSTGRES_USER) | gzip > "$$f"; \
 	 echo "wrote $$f ($$(du -h "$$f" | cut -f1))"
-	@:
-
-# CHU Y: dump cua pg_dumpall chua CREATE ROLE/DATABASE — restore vao cluster
-# da co san object se bao loi trung. Dung tren cluster moi init, hoac xoa
-# .data/postgres truoc (xem tools/postgres/README.md).
 db-restore:     ## f=<file> | ⚠ restore (chỉ trên cluster mới init)
 	@test -n "$(f)" || { echo "thieu f=<file>. Co san:"; ls -1 $(DUMP) 2>/dev/null | sed 's/^/  /'; exit 1; }
 	@test -f "$(f)" || { echo "khong thay file $(f)"; exit 1; }
@@ -192,44 +141,29 @@ db-restore:     ## f=<file> | ⚠ restore (chỉ trên cluster mới init)
 	  *)    $(DOCKER) exec -i env-postgres psql -U $(POSTGRES_USER) -d postgres < "$(f)" ;; \
 	 esac
 	@echo "restored tu $(f)"
-	@:
 
-##############################################################
 ##@ App
-# app trong projects/
-##############################################################
 app-up:         ## p=myapp | build + up projects/myapp
 	@test -n "$(p)" || { echo "thieu p=<app>"; exit 1; }
 	$(DC) -f projects/$(p)/docker-compose.yml up -d --build
-	@:
 app-down:       ## p=myapp | tắt projects/myapp
 	@test -n "$(p)" || { echo "thieu p=<app>"; exit 1; }
 	$(DC) -f projects/$(p)/docker-compose.yml down
-	@:
 app-logs:       ## p=myapp | log của projects/myapp
 	@test -n "$(p)" || { echo "thieu p=<app>"; exit 1; }
 	$(DC) -f projects/$(p)/docker-compose.yml logs -f --tail=100
-	@:
 
-##############################################################
 ##@ codegraph
-##############################################################
 cg-build:       ## build image
 	@test -n "$(PROJECTS_ROOT)" || { echo "PROJECTS_ROOT chua set trong .env"; exit 1; }
 	$(DC) build codegraph
-	@:
 cg-up:          ## bật container
 	@test -n "$(PROJECTS_ROOT)" || { echo "PROJECTS_ROOT chua set trong .env"; exit 1; }
 	$(DC) up -d codegraph
-	@:
 cg-down:        ## tắt container
 	$(DC) rm -sf codegraph
-	@:
 cg-sh:
 	$(DC) exec codegraph bash
-	@:
-
-# Khong truyen pw= thi no hoi, khong vao shell history.
 cg-auth:        ## u=<user> [pw=...] | sinh htpasswd cho UI
 	@test -n "$(u)" || { echo "thieu u=<user>"; exit 1; }
 	@if [ -n "$(pw)" ]; then pw='$(pw)'; \
@@ -240,9 +174,7 @@ cg-auth:        ## u=<user> [pw=...] | sinh htpasswd cho UI
 		> tools/proxy/auth/codegraph.htpasswd
 	@echo "wrote tools/proxy/auth/codegraph.htpasswd"
 	@$(MAKE) --no-print-directory reload
-	@:
-
-# Lan dau `init` (index luon), lan sau `index`. -y vi docker exec khong co TTY.
+# -y vi docker exec khong co TTY.
 cg-index:       ## p=<project> | index 1 project
 	@test -n "$(p)" || { echo "thieu p=<duong-dan-tuong-doi-trong-PROJECTS_ROOT>"; exit 1; }
 	@if [ -d "$(PROJECTS_ROOT)/$(p)/.codegraph" ]; then \
@@ -252,13 +184,9 @@ cg-index:       ## p=<project> | index 1 project
 		echo "[cg] init + index $(p) (lan dau)"; \
 		$(DOCKER) exec -w $(PROJECTS_ROOT)/$(p) env-codegraph codegraph init -y; \
 	fi
-	@:
-
 cg-status:      ## p=<project> | trạng thái index
 	@test -n "$(p)" || { echo "thieu p=<duong-dan-tuong-doi>"; exit 1; }
 	@$(DOCKER) exec -w $(PROJECTS_ROOT)/$(p) env-codegraph codegraph status
-	@:
-
 cg-ui:
 	@echo "codegraph v1.6.0 khong co lenh 'ui' (chi co tren branch main, chua release)."
 	@echo "Kiem tra ban hien tai:  docker exec env-codegraph codegraph --help"
@@ -266,8 +194,6 @@ cg-ui:
 	@echo "tools/codegraph/docker-compose.yml, doi codegraph.conf.dist -> .conf,"
 	@echo "make cg-auth u=<user>, make reload."
 	@exit 1
-
-# Ban PER-PROJECT (-w) de co default project. Xem tools/codegraph/README.md
 cg-mcp:         ## p=<project> | in config MCP
 	@test -n "$(p)" || { echo "thieu p=<duong-dan-tuong-doi>"; exit 1; }
 	@echo 'Dan vao $(PROJECTS_ROOT)/$(p)/.mcp.json:'
@@ -282,8 +208,5 @@ cg-mcp:         ## p=<project> | in config MCP
 	@echo '}'
 	@echo ''
 	@echo '-i thoi, KHONG -it: TTY lam hong framing JSON-RPC.'
-	@:
-
 clean:
 	$(DOCKER) system prune
-	@:
