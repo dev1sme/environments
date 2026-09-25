@@ -29,3 +29,7 @@ tools/homepage/config/*
 !tools/homepage/config/bookmarks.yaml
 !tools/homepage/config/widgets.yaml
 !tools/homepage/config/custom.css
+
+# Tài liệu markdown của ba, serve ở docs.$DOMAIN — nội dung cá nhân, không commit.
+docs/*
+!docs/.gitkeep

@@ -9,15 +9,9 @@
 #           abbr: GH              # 2 chữ hiện thay icon
 #           icon: github.png      # hoặc icon (dashboard-icons *.png / mdi-*), thay abbr
 #           description: ...      # dòng chữ nhỏ bên dưới, tuỳ chọn
-#
-# Ví dụ — bỏ dấu # đầu dòng và xoá dòng `[]` cuối file:
-#
-# - Dev env:
-#     - Assets:
-#         - href: https://assets.thomson.cba
-#           icon: mdi-folder-network-outline
-# - Tài liệu:
-#     - Homepage docs:
-#         - href: https://gethomepage.dev
-#           abbr: HP
-[]
+
+- Dev env:
+    - Tài liệu:
+        - href: https://docs.thomson.cba
+          icon: mdi-book-open-page-variant-outline
+          description: markdown trong docs/

@@ -19,6 +19,8 @@ services:
       - ./auth:/etc/nginx/auth:ro
       - ../ssl-cert:/etc/nginx/ssl:ro
       - ../../assets:/usr/share/nginx/assets:ro
+      - ../../docs:/usr/share/nginx/docs:ro
+      - ../docs:/usr/share/nginx/docs-ui:ro
     # Để với tới service chạy network_mode: host (hiện không app nào dùng)
     extra_hosts:
       - "host.docker.internal:host-gateway"
