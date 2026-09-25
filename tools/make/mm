@@ -9,12 +9,12 @@ DIR=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
 
 usage() {
 	cat <<-EOF
-	Dùng: mm [menu|help|check|doc] [-f makefile] [-o MAKE.md]
+	Dùng: mm [menu|help|check|doc] [-f makefile] [-o MAKEFILE.md]
 
 	  menu    chọn lệnh bằng giao diện (mặc định khi có terminal)
 	  help    liệt kê target có ##
-	  check   kiểm tra cú pháp ##, #!var, MAKE.md còn khớp không
-	  doc     sinh MAKE.md cạnh makefile (-o để đổi chỗ, -o - ra stdout)
+	  check   kiểm tra cú pháp ##, #!var, MAKEFILE.md còn khớp không
+	  doc     sinh MAKEFILE.md cạnh makefile (-o để đổi chỗ, -o - ra stdout)
 
 	Cú pháp: $DIR/README.md
 	EOF

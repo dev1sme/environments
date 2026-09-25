@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# `mm check`: kiem tra chu thich ## trong makefile + MAKE.md con khop khong.
+# `mm check`: kiem tra chu thich ## trong makefile + MAKEFILE.md con khop khong.
 # Exit 1 khi co loi (■); canh bao (▲) khong lam fail.
 set -uo pipefail
 
@@ -39,8 +39,8 @@ for i in "${!V_NAME[@]}"; do
 	[[ -n ${used[${V_NAME[i]}]:-} ]] || warns+=("#!var ${V_NAME[i]}: không target nào dùng")
 done
 
-# MAKE.md chi kiem khi da co — project khong muon doc thi khong bat.
-md=$(dirname "$MM_FILE")/MAKE.md
+# MAKEFILE.md chi kiem khi da co — project khong muon doc thi khong bat.
+md=$(dirname "$MM_FILE")/MAKEFILE.md
 if [[ -f $md ]] && (( ! ${#ERRORS[@]} )); then
 	MM_OUT=- bash "$DIR/doc.sh" | cmp -s - "$md" \
 		|| errs+=("$md cũ so với $(basename "$MM_FILE") — chạy: make help-doc")

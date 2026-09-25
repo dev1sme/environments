@@ -1,6 +1,6 @@
 # mm — help / menu cho makefile bất kỳ
 
-Viết chú thích `##` ngay tại target là có `make help`, `make menu` (giao diện chọn lệnh, tự hỏi biến), `make help-check`, `make help-doc` (sinh `MAKE.md`). Không copy file sang project khác.
+Viết chú thích `##` ngay tại target là có `make help`, `make menu` (giao diện chọn lệnh, tự hỏi biến), `make help-check`, `make help-doc` (sinh `MAKEFILE.md`). Không copy file sang project khác.
 
 ## Cài một lần
 
@@ -65,9 +65,9 @@ Nguồn của `#!var`:
 
 Biến không có `#!var` thì menu cho nhập tay, tiêu đề là tên biến.
 
-## MAKE.md
+## MAKEFILE.md
 
-`make help-doc` sinh `MAKE.md` cạnh makefile để xem trên GitHub/IDE. Nếu `MAKE.md` tồn tại, `make help-check` báo lỗi khi nó lệch với makefile. Project không muốn thì không sinh, check bỏ qua.
+`make help-doc` sinh `MAKEFILE.md` cạnh makefile để xem trên GitHub/IDE. Nếu `MAKEFILE.md` tồn tại, `make help-check` báo lỗi khi nó lệch với makefile. Project không muốn thì không sinh, check bỏ qua.
 
 ## File
 
