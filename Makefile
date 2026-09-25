@@ -28,7 +28,7 @@ include tools/make/menu.mk
 ##@ Core
 up: home-gen    ## [p=myapp] | bật env, hoặc build + bật projects/myapp
 	$(if $(p),$(APP_DC) up -d --build,$(DC) up -d)
-down:           ## n=proxy [p=myapp] | tắt 1 service, tắt hết (n trống), hoặc tắt app
+down:           ## [n=proxy] [p=myapp] | tắt 1 service, tắt hết (n trống), hoặc tắt app
 	$(if $(p),$(APP_DC) down,$(DC) $(if $(n),rm -sf $(n),down))
 rs: down up     ## down rồi up lại
 reup:           ## n=proxy | pull bản mới / rebuild + up 1 service
@@ -36,7 +36,7 @@ reup:           ## n=proxy | pull bản mới / rebuild + up 1 service
 	$(DC) up -d --build $(n)
 build:
 	$(DC) build $(n)
-logs:           ## n=proxy [p=myapp] | xem log (follow) của service hoặc app
+logs:           ## [n=proxy] [p=myapp] | xem log (follow) của service hoặc app
 	$(if $(p),$(APP_DC) logs -f --tail=100,$(DC) logs -f --tail=100 $(n))
 ls:             ## liệt kê container đang chạy
 	$(DOCKER) ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
