@@ -8,7 +8,7 @@ SSL=tools/ssl-cert
 DUMP=.data/dump
 HOME_CFG=tools/homepage/config
 
-.PHONY: domain-set cert-init db-dump db-restore up down rs reup build logs ls bash sh test reload vhosts home-gen cert dns-init dns-test psql db app-up app-down app-logs clean cg-up cg-down cg-build cg-index cg-status cg-ui cg-auth cg-mcp cg-sh
+.PHONY: domain-set cert-init db-dump db-restore up down rs reup build logs ls bash sh test reload home-gen cert dns-init dns-test psql db app-up app-down app-logs clean cg-up cg-down cg-build cg-index cg-status cg-ui cg-auth cg-mcp cg-sh
 
 # help/menu tu chu thich ## — cu phap: tools/make/README.md
 include tools/make/menu.mk
@@ -29,7 +29,8 @@ up: home-gen     ## bật proxy + postgres + coredns + homepage
 down:           ## tắt hết
 	$(DC) down
 rs: down up     ## down rồi up lại
-reup:           ## n=proxy | rebuild + up 1 service
+reup:           ## n=proxy | pull bản mới / rebuild + up 1 service
+	$(DC) pull --ignore-buildable $(n)
 	$(DC) up -d --build $(n)
 build:
 	$(DC) build $(n)
@@ -49,11 +50,9 @@ reload: test    ## reload nginx, KHÔNG đứt kết nối
 	$(DC) exec proxy nginx -s reload
 	@echo "proxy reloaded"
 	@$(MAKE) --no-print-directory home-gen
-vhosts:         ## liệt kê domain -> upstream + trạng thái
-	@tools/proxy/vhosts.sh
 # services.yaml cho homepage — ghi file tam roi mv de homepage khong doc file do dang.
 home-gen:
-	@tools/proxy/vhosts.sh --yaml > $(HOME_CFG)/.services.yaml.tmp && \
+	@tools/homepage/gen-services.sh > $(HOME_CFG)/.services.yaml.tmp && \
 	 mv $(HOME_CFG)/.services.yaml.tmp $(HOME_CFG)/services.yaml
 	@echo "wrote $(HOME_CFG)/services.yaml"
 cert:           ## xem cert hiện tại

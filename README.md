@@ -59,7 +59,7 @@ Thêm tool mới: tạo `tools/<ten>/docker-compose.yml` + thêm 1 entry vào `i
 1. Tạo `projects/<app>/docker-compose.yml`, tham khảo `projects/_example/`. Join network `env-net` (external), không publish port ra host — route qua proxy.
 2. Copy `tools/proxy/conf.d/_example.conf.dist` → `tools/proxy/conf.d/vhosts/<app>.conf` (thư mục `vhosts/` gitignore — vhost của app là cấu hình local), sửa `server_name` và giá trị `$upstream`. Đọc [tools/proxy/README.md](tools/proxy/README.md) trước — có mấy chỗ sập được.
 3. Cần DB riêng: xem [tools/postgres/README.md](tools/postgres/README.md).
-4. `make app-up p=<app>` rồi `make reload`. Domain mới tự hiện ở `https://home.$DOMAIN` (hoặc `make vhosts` trong terminal).
+4. `make app-up p=<app>` rồi `make reload`. Domain mới tự hiện ở `https://home.$DOMAIN`.
 
 Không cần thêm DNS record — zone đã có wildcard `*`.
 

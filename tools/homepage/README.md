@@ -1,6 +1,6 @@
 # homepage — dashboard https://home.$DOMAIN
 
-[Homepage](https://gethomepage.dev) liệt kê mọi domain của proxy, chấm xanh/đỏ theo upstream sống/chết. Không phải khai tay: danh sách **sinh từ `tools/proxy/conf.d`** mỗi lần `make reload` (và `make up`).
+[Homepage](https://gethomepage.dev) liệt kê mọi domain của proxy, chấm xanh/đỏ theo upstream sống/chết. Không phải khai tay: danh sách **sinh từ `tools/proxy/conf.d`** bởi `gen-services.sh` mỗi lần `make reload` (và `make up`).
 
 ```
 config/services.yaml    SINH TỰ ĐỘNG bởi `make home-gen` — gitignore, sửa tay là mất
@@ -13,14 +13,14 @@ config/*                còn lại homepage tự tạo (skeleton, logs/) — git
 Thêm app mới: làm như cũ — thêm `.conf` vào `tools/proxy/conf.d/vhosts/`, `make reload`, F5 dashboard. Homepage đọc lại `services.yaml` mỗi request, không cần restart.
 
 - **Apps** = `conf.d/vhosts/*.conf`, **Tools** = `conf.d/*.conf`. Tên hiển thị = phần trước dấu `.` đầu tiên của `server_name`.
-- Trạng thái dùng `ping` tên upstream qua `env-net` — cùng nghĩa với cột STATUS của `make vhosts`: container còn sống. Không dùng `siteMonitor` vì HTTP status của upstream không nói app sống hay chết (icms `/` trả 404 vì app nằm ở `/icms/`).
+- Trạng thái dùng `ping` tên upstream qua `env-net` — xanh = container còn sống. Không dùng `siteMonitor` vì HTTP status của upstream không nói app sống hay chết (icms `/` trả 404 vì app nằm ở `/icms/`).
 - Vhost static (`root`) không có chấm trạng thái.
 
 Mấy chỗ dễ sai:
 
 1. **Image `latest` không tự cập nhật** — `make up` dùng image đã pull. Lên bản mới:
    ```bash
-   docker compose pull homepage && docker compose up -d homepage
+   make reup n=homepage
    ```
    Homepage hay đổi format config giữa các bản — lên xong mà dashboard trống/lỗi thì xem `make logs n=homepage` và [release notes](https://github.com/gethomepage/homepage/releases). Bản đã test: `v2.4.0`.
 2. **`HOMEPAGE_ALLOWED_HOSTS`** phải khớp domain truy cập, không thì 400 `Host validation failed`. Đang set `home.${DOMAIN}` nên `make domain-set` tự đúng.

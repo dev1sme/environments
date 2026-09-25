@@ -12,7 +12,7 @@ Biến trong `[ ]` là tuỳ chọn.
 | `up`   |           | bật proxy + postgres + coredns + homepage |
 | `down` |           | tắt hết                                   |
 | `rs`   |           | down rồi up lại                           |
-| `reup` | `n=proxy` | rebuild + up 1 service                    |
+| `reup` | `n=proxy` | pull bản mới / rebuild + up 1 service     |
 | `logs` | `n=proxy` | xem log (follow)                          |
 | `ls`   |           | liệt kê container đang chạy               |
 | `bash` | `n=proxy` | vào shell container                       |
@@ -23,7 +23,6 @@ Biến trong `[ ]` là tuỳ chọn.
 | -------- | ---- | --------------------------------------- |
 | `test`   |      | nginx -t, check config trước khi reload |
 | `reload` |      | reload nginx, KHÔNG đứt kết nối         |
-| `vhosts` |      | liệt kê domain -> upstream + trạng thái |
 | `cert`   |      | xem cert hiện tại                       |
 
 ## Portability
