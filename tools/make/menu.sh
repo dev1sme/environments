@@ -1,21 +1,22 @@
 #!/usr/bin/env bash
-# `make menu`: giao dien kieu clack (┌ │ ◆ ◇ └), bash thuan, khong can fzf.
+# `mm menu`: giao dien kieu clack (┌ │ ◆ ◇ └), bash thuan, khong can fzf.
 # Khong dung `set -e`: (( )) tra 1 khi ket qua = 0 se giet script giua chung.
 set -uo pipefail
 
-# Moi quy tac (bien, goi y, an) nam trong targets.txt — file nay khong gan
-# voi repo nao. Chay tu thu muc cua makefile (make tu cd vao do).
-DIR=$(cd "$(dirname "$0")" && pwd)
-FILE="$DIR/targets.txt"
+# Moi quy tac (bien, goi y) nam trong chu thich ## cua makefile — file nay
+# khong gan voi repo nao. Chay o thu muc cua makefile (make tu cd vao do).
+DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 . "$DIR/lib.sh"
+: "${MM_FILE:?chạy qua mm}"
 
 [ -t 0 ] && [ -t 1 ] || { echo "make menu cần terminal, dùng: make help"; exit 1; }
 
-parse_targets "$FILE"
+parse_makefile "$MM_FILE"
 if (( ${#ERRORS[@]} )); then
-	printf '%s sai cú pháp:\n' "$FILE"; printf '  %s\n' "${ERRORS[@]}"
+	printf '%s sai cú pháp:\n' "$MM_FILE"; printf '  %s\n' "${ERRORS[@]}"
 	echo "Chạy: make help-check"; exit 1
 fi
+(( ${#T_NAME[@]} )) || { echo "$MM_FILE chưa có target nào có ## — xem $DIR/README.md"; exit 1; }
 
 VISIBLE=10  # so dong toi da cua 1 list
 
@@ -63,12 +64,6 @@ cancel() {
 	draw "${RED}■${RST}  ${STEP}${NL}${GRAY}└${RST}  ${RED}Đã huỷ${RST}${NL}"
 	exit 0
 }
-
-# pad S N: them space cho du N ky tu (${#} dem ky tu, khong dem byte).
-pad() { local s=$1; printf '%s%*s' "$s" $(( $2 > ${#s} ? $2 - ${#s} : 0 )) ''; }
-
-# trunc S N: cat S con toi da N ky tu.
-trunc() { local s=$1; (( ${#s} > $2 )) && s="${s:0:$(( $2 - 1 ))}…"; printf '%s' "$s"; }
 
 # Doc 1 phim -> KEY: up|down|left|right|enter|esc|bs|<ky tu>
 readkey() {
@@ -307,8 +302,9 @@ done
 ARGS=()
 for (( k = 1; k <= ${#TOKS[@]}; k++ )); do [[ -n ${ARG[k]:-} ]] && ARGS+=("${ARG[k]}"); done
 
-cmd="make $target${ARGS[*]:+ ${ARGS[*]}}"
+MK=(make); [[ -n ${MM_F:-} ]] && MK+=(-f "$MM_FILE")
+cmd="${MK[*]} $target${ARGS[*]:+ ${ARGS[*]}}"
 printf '%s└%s  %s$ %s%s\n\n' "$GRAY" "$RST" "$CYAN" "$cmd" "$RST"
 cleanup
 trap - EXIT INT
-exec make --no-print-directory "$target" "${ARGS[@]}"
+exec "${MK[@]}" --no-print-directory "$target" "${ARGS[@]}"

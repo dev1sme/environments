@@ -1,30 +1,40 @@
-#!/bin/sh
-# Render `make help` tu targets.txt, cung style voi `make menu`.
-# Mau tu tat khi khong phai TTY hoac NO_COLOR.
-set -eu
+#!/usr/bin/env bash
+# `mm help`: liet ke target co ##, cung style voi menu. Mau tu tat khi khong phai TTY hoac NO_COLOR.
+set -uo pipefail
 
-FILE="$(dirname "$0")/targets.txt"
+DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+. "$DIR/lib.sh"
+: "${MM_FILE:?chạy qua mm}"
 
 if [ -t 1 ] && [ -z "${NO_COLOR:-}" ]; then
-	B=$(printf '\033[1m'); C=$(printf '\033[36m'); Y=$(printf '\033[33m')
-	D=$(printf '\033[2m'); G=$(printf '\033[90m'); K=$(printf '\033[32m'); R=$(printf '\033[0m')
+	E=$'\033'; B="$E[1m" C="$E[36m" Y="$E[33m" D="$E[2m" G="$E[90m" K="$E[32m" R="$E[0m"
 else
 	B= C= Y= D= G= K= R=
 fi
 
-printf '%s┌%s  %s%s%s %s· make help%s\n' "$G" "$R" "$B" "$(basename "$PWD")" "$R" "$D" "$R"
+parse_makefile "$MM_FILE"
 
-# Cot target/bien la ASCII nen printf cua mawk (dem byte) van thang hang;
-# mo ta co dau nam o cot cuoi, khong can pad.
-awk -F'|' -v B="$B" -v C="$C" -v Y="$Y" -v G="$G" -v K="$K" -v R="$R" '
-function trim(s) { gsub(/^[ \t]+|[ \t]+$/, "", s); return s }
-/^[ \t]*(#|!|$)/ { next }
-/^@/             { printf "%s│%s\n%s◇%s  %s%s%s\n", G, R, K, R, B, substr($0, 2), R; next }
-{
-	d = trim($3); if (d ~ /^⚠/) d = Y d R
-	printf "%s│%s  %s%-12s%s %s%-19s%s %s\n", G, R, C, trim($1), R, Y, trim($2), R, d
-}' "$FILE"
+kw=0 sw=0
+for i in "${!T_NAME[@]}"; do
+	(( ${#T_NAME[i]} > kw )) && kw=${#T_NAME[i]}
+	(( ${#T_SPEC[i]} > sw )) && sw=${#T_SPEC[i]}
+done
+
+printf '%s┌%s  %s%s%s %s· make help%s\n' "$G" "$R" "$B" "$(basename "$PWD")" "$R" "$D" "$R"
+prev=-
+for i in "${!T_NAME[@]}"; do
+	if [[ ${T_GROUP[i]} != "$prev" ]]; then
+		prev=${T_GROUP[i]}
+		printf '%s│%s\n' "$G" "$R"
+		[[ -n $prev ]] && printf '%s◇%s  %s%s%s\n' "$K" "$R" "$B" "$prev" "$R"
+	fi
+	d=${T_DESC[i]}; [[ $d == ⚠* ]] && d="$Y$d$R"
+	printf '%s│%s  %s%s%s  %s%s%s  %s\n' "$G" "$R" "$C" "$(pad "${T_NAME[i]}" "$kw")" "$R" \
+		"$Y" "$(pad "${T_SPEC[i]}" "$sw")" "$R" "$d"
+done
 
 printf '%s│%s\n' "$G" "$R"
+(( ${#ERRORS[@]} )) && printf '%s│%s  %s▲ %d lỗi cú pháp ##, chạy: make help-check%s\n%s│%s\n' \
+	"$G" "$R" "$Y" "${#ERRORS[@]}" "$R" "$G" "$R"
 printf '%s└%s  %smake menu%s %schọn lệnh bằng giao diện ·%s make %s<target>%s %s[biến=giá-trị]%s\n' \
 	"$G" "$R" "$C" "$R" "$D" "$R" "$C" "$R" "$Y" "$R"

@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+# mm — help / menu / check / doc tu chu thich ## trong makefile.
+# Chay o thu muc co makefile, hoac qua `make help|menu|help-check|help-doc` (menu.mk).
+set -uo pipefail
+
+(( BASH_VERSINFO[0] >= 4 )) || { echo "mm cần bash >= 4 (macOS: brew install bash)"; exit 1; }
+
+DIR=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
+
+usage() {
+	cat <<-EOF
+	Dùng: mm [menu|help|check|doc] [-f makefile] [-o MAKE.md]
+
+	  menu    chọn lệnh bằng giao diện (mặc định khi có terminal)
+	  help    liệt kê target có ##
+	  check   kiểm tra cú pháp ##, #!var, MAKE.md còn khớp không
+	  doc     sinh MAKE.md cạnh makefile (-o để đổi chỗ, -o - ra stdout)
+
+	Cú pháp: $DIR/README.md
+	EOF
+	exit "${1:-0}"
+}
+
+cmd="" file="" out=""
+while (( $# )); do
+	case $1 in
+		menu|help|check|doc) [ -z "$cmd" ] || usage 1; cmd=$1; shift ;;
+		-f) file=${2:-}; shift 2 || usage 1 ;;
+		-o) out=${2:-}; shift 2 || usage 1 ;;
+		-h|--help) usage ;;
+		*) echo "mm: tham số lạ '$1'"; usage 1 ;;
+	esac
+done
+[ -n "$cmd" ] || { [ -t 0 ] && [ -t 1 ] && cmd=menu || cmd=help; }
+
+# Thu tu tim giong GNU make.
+default=""
+for f in GNUmakefile makefile Makefile; do [ -f "$f" ] && { default=$f; break; }; done
+file=${file:-$default}
+[ -n "$file" ] && [ -f "$file" ] || { echo "mm: không thấy makefile (dùng -f)"; exit 1; }
+
+# MM_F=1: file khac cai make tu tim -> menu phai goi `make -f`.
+MM_F=""; [[ $file -ef $default ]] || MM_F=1
+export MM_FILE=$file MM_F MM_OUT=$out
+exec bash "$DIR/$cmd.sh"
