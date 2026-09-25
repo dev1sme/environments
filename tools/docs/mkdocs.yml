@@ -1,19 +1,29 @@
-# https://squidfunk.github.io/mkdocs-material/setup/
+# Zensical đọc thẳng file mkdocs.yml. https://zensical.org/docs/setup/basics/
 site_name: Tài liệu
 site_url: https://docs.thomson.cba/
 # Mount từ docs/ ở gốc repo. Không khai `nav` -> menu tự sinh theo thư mục.
-docs_dir: /content
+docs_dir: content
+
+# Nút "xem nguồn" của theme = edit_url với /edit/ thay bằng /raw/
+# -> https://docs.../raw/<file>.md, nginx serve file gốc ở đó (docs.conf).
+# Không có repo thật, repo_url chỉ để theme sinh edit_url — widget repo ở
+# header bị ẩn bằng overrides/partials/source.html. Không có / cuối, không thì
+# link thành //raw/.
+repo_url: https://docs.thomson.cba
+edit_uri: edit/
 
 theme:
   name: material
   language: vi
-  # Ghi đè partials/actions.html: nút tải file .md gốc.
   custom_dir: overrides
   palette:
     - scheme: slate
       primary: indigo
       accent: indigo
+  icon:
+    view: material/download
   features:
+    - content.action.view
     - navigation.indexes
     - navigation.top
     - navigation.instant

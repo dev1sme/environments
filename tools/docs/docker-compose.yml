@@ -1,4 +1,4 @@
-# Tài liệu markdown https://docs.$DOMAIN — MkDocs Material đọc thẳng docs/ ở
+# Tài liệu markdown https://docs.$DOMAIN — Zensical đọc thẳng docs/ ở
 # gốc repo, tự reload khi file đổi. Chi tiết: README.md
 
 networks:
@@ -7,16 +7,18 @@ networks:
 
 services:
   docs:
-    image: squidfunk/mkdocs-material:latest
+    image: zensical/zensical:latest
     container_name: env-docs
     restart: unless-stopped
-    # `serve` là dev server của mkdocs: watch file + live reload. Đủ cho LAN,
-    # không đưa ra internet.
-    command: serve --dev-addr=0.0.0.0:8000
+    # `serve`: watch file + live reload. Image ghi "không dành cho hosting" —
+    # đủ cho LAN, không đưa ra internet.
+    command: serve -f /docs/mkdocs.yml -a 0.0.0.0:8000
     volumes:
-      - .:/docs:ro
-      # Mount riêng, KHÔNG lồng trong /docs: /docs là ro nên docker không tạo
-      # được mountpoint con -> container không start.
-      - ../../docs:/content:ro
+      # Mount LẺ file, không mount cả thư mục vào /docs: zensical bắt docs_dir
+      # nằm trong project root (/docs), mà /docs mount :ro thì docker không tạo
+      # được mountpoint con /docs/content -> container không start.
+      - ./mkdocs.yml:/docs/mkdocs.yml:ro
+      - ./overrides:/docs/overrides:ro
+      - ../../docs:/docs/content:ro
     networks:
       - env-net
