@@ -35,7 +35,7 @@ Corefile có 2 block: zone `$DOMAIN` trả về `HOST_IP`, còn lại `forward .
 
 ## Mấy chỗ dễ sập
 
-**Bind riêng vào `HOST_IP`, không bind `0.0.0.0`.** Host chạy systemd-resolved giữ `127.0.0.53:53`, bind all là `address already in use`. Đổi IP máy thì sửa `.env` rồi `make dns-init && make rs`.
+**Bind riêng vào `HOST_IP`, không bind `0.0.0.0`.** Host chạy systemd-resolved giữ `127.0.0.53:53`, bind all là `address already in use`. Đổi IP máy thì sửa `.env` rồi `make dns-init && make up` — port bind đổi nên compose tự tạo lại coredns, đọc zone mới.
 
 **Mount cả thư mục, không mount lẻ từng file.** `make dns-init` tạo file zone mới — mount lẻ một file chưa tồn tại thì docker tạo nó thành directory, container start là lỗi.
 

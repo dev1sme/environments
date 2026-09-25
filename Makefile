@@ -10,7 +10,7 @@ HOME_CFG=tools/homepage/config
 # p=<app> -> lenh chay tren projects/<app>/docker-compose.yml thay vi env.
 APP_DC=$(DC) -f projects/$(p)/docker-compose.yml
 
-.PHONY: domain-set cert-init db-dump db-restore up down rs reup build logs ls bash sh test reload home-gen cert dns-init dns-test psql db clean cg-index cg-status cg-ui cg-auth cg-mcp
+.PHONY: domain-set cert-init db-dump db-restore up down reup build logs ls bash sh test reload home-gen cert dns-init dns-test psql db clean cg-index cg-status cg-ui cg-auth cg-mcp
 
 # help/menu tu chu thich ## — cu phap: tools/make/README.md
 include tools/make/menu.mk
@@ -30,7 +30,6 @@ up: home-gen    ## [p=myapp] | bật env, hoặc build + bật projects/myapp
 	$(if $(p),$(APP_DC) up -d --build,$(DC) up -d)
 down:           ## [n=proxy] [p=myapp] | tắt 1 service, tắt hết (n trống), hoặc tắt app
 	$(if $(p),$(APP_DC) down,$(DC) $(if $(n),rm -sf $(n),down))
-rs: down up     ## down rồi up lại
 reup:           ## n=proxy | pull bản mới / rebuild + up 1 service
 	$(DC) pull --ignore-buildable $(n)
 	$(DC) up -d --build $(n)

@@ -11,7 +11,6 @@ Biến trong `[ ]` là tuỳ chọn.
 | ------ | ----------------------- | ---------------------------------------------- |
 | `up`   | `[p=myapp]`             | bật env, hoặc build + bật projects/myapp       |
 | `down` | `[n=proxy]` `[p=myapp]` | tắt 1 service, tắt hết (n trống), hoặc tắt app |
-| `rs`   |                         | down rồi up lại                                |
 | `reup` | `n=proxy`               | pull bản mới / rebuild + up 1 service          |
 | `logs` | `[n=proxy]` `[p=myapp]` | xem log (follow) của service hoặc app          |
 | `ls`   |                         | liệt kê container đang chạy                    |
