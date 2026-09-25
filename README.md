@@ -24,6 +24,7 @@ tools/<ten>/         mỗi tool 1 thư mục: docker-compose.yml + config + READ
 | `tools/ssl-cert/` | wildcard cert, cách cài CA lên điện thoại | [README](tools/ssl-cert/README.md) |
 | `tools/postgres/` | postgres dùng chung, mỗi app 1 database | [README](tools/postgres/README.md) |
 | `tools/coredns/` | DNS nội bộ (DƯ trong LAN công ty) | [README](tools/coredns/README.md) |
+| `tools/homepage/` | dashboard `https://home.$DOMAIN`, danh sách domain sinh từ conf proxy | [README](tools/homepage/README.md) |
 | `tools/codegraph/` | code intelligence cho AI agent qua MCP | [README](tools/codegraph/README.md) |
 | `tools/java/` | hướng dẫn Dev Containers cho project Java (docs) | [README](tools/java/README.md) |
 
@@ -58,7 +59,7 @@ Thêm tool mới: tạo `tools/<ten>/docker-compose.yml` + thêm 1 entry vào `i
 1. Tạo `projects/<app>/docker-compose.yml`, tham khảo `projects/_example/`. Join network `env-net` (external), không publish port ra host — route qua proxy.
 2. Copy `tools/proxy/conf.d/_example.conf.dist` → `tools/proxy/conf.d/vhosts/<app>.conf` (thư mục `vhosts/` gitignore — vhost của app là cấu hình local), sửa `server_name` và giá trị `$upstream`. Đọc [tools/proxy/README.md](tools/proxy/README.md) trước — có mấy chỗ sập được.
 3. Cần DB riêng: xem [tools/postgres/README.md](tools/postgres/README.md).
-4. `make app-up p=<app>` rồi `make reload`. `make vhosts` xem lại domain nào trỏ đi đâu, upstream có đang chạy không.
+4. `make app-up p=<app>` rồi `make reload`. Domain mới tự hiện ở `https://home.$DOMAIN` (hoặc `make vhosts` trong terminal).
 
 Không cần thêm DNS record — zone đã có wildcard `*`.
 

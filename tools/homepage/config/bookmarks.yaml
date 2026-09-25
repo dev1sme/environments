@@ -1,0 +1,9 @@
+---
+# Link VIẾT TAY (ngoài vhost). services.yaml là file sinh tự động, sửa ở đó sẽ mất.
+# https://gethomepage.dev/configs/bookmarks/
+#
+# - Docs:
+#     - Homepage:
+#         - href: https://gethomepage.dev
+#           abbr: HP
+[]

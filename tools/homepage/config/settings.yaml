@@ -1,0 +1,14 @@
+---
+# https://gethomepage.dev/configs/settings/
+title: Dev environment
+theme: dark
+headerStyle: clean
+hideVersion: true
+
+layout:
+  Apps:
+    style: row
+    columns: 3
+  Tools:
+    style: row
+    columns: 3

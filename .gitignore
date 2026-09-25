@@ -21,3 +21,10 @@ tools/proxy/conf.d/vhosts/*
 
 projects/*
 !projects/_example/*
+
+# homepage: services.yaml sinh bởi `make reload`, còn lại là skeleton/log
+# homepage tự tạo. Chỉ commit file viết tay.
+tools/homepage/config/*
+!tools/homepage/config/settings.yaml
+!tools/homepage/config/bookmarks.yaml
+!tools/homepage/config/widgets.yaml

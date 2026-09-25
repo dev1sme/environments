@@ -1,0 +1,24 @@
+# Dashboard https://home.$DOMAIN. Danh sách vhost SINH TỪ tools/proxy/conf.d
+# mỗi lần `make reload`. Chi tiết: README.md
+
+networks:
+  env-net:
+    name: env-net
+
+services:
+  homepage:
+    # Ghim version: homepage hay đổi format config giữa các bản.
+    image: ghcr.io/gethomepage/homepage:v2.4.0
+    container_name: env-homepage
+    restart: unless-stopped
+    environment:
+      # Thiếu là homepage trả 400 "Host validation failed".
+      HOMEPAGE_ALLOWED_HOSTS: home.${DOMAIN}
+      # File log + skeleton homepage ghi vào ./config thuộc user host, không phải root.
+      PUID: ${HOST_UID}
+      PGID: ${HOST_GID}
+    volumes:
+      # rw: homepage tự copy skeleton config còn thiếu + ghi logs/.
+      - ./config:/app/config
+    networks:
+      - env-net

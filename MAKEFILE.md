@@ -7,15 +7,15 @@ Biến trong `[ ]` là tuỳ chọn.
 
 ## Core
 
-| Target | Biến      | Mô tả                          |
-| ------ | --------- | ------------------------------ |
-| `up`   |           | bật proxy + postgres + coredns |
-| `down` |           | tắt hết                        |
-| `rs`   |           | down rồi up lại                |
-| `reup` | `n=proxy` | rebuild + up 1 service         |
-| `logs` | `n=proxy` | xem log (follow)               |
-| `ls`   |           | liệt kê container đang chạy    |
-| `bash` | `n=proxy` | vào shell container            |
+| Target | Biến      | Mô tả                                     |
+| ------ | --------- | ----------------------------------------- |
+| `up`   |           | bật proxy + postgres + coredns + homepage |
+| `down` |           | tắt hết                                   |
+| `rs`   |           | down rồi up lại                           |
+| `reup` | `n=proxy` | rebuild + up 1 service                    |
+| `logs` | `n=proxy` | xem log (follow)                          |
+| `ls`   |           | liệt kê container đang chạy               |
+| `bash` | `n=proxy` | vào shell container                       |
 
 ## Proxy
 

@@ -10,6 +10,8 @@ include:
     env_file: .env
   - path: tools/codegraph/docker-compose.yml
     env_file: .env
+  - path: tools/homepage/docker-compose.yml
+    env_file: .env
 
 networks:
   env-net:

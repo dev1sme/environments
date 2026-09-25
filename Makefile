@@ -6,8 +6,9 @@ DC=docker compose
 ZONE=tools/coredns/zones/$(DOMAIN).db
 SSL=tools/ssl-cert
 DUMP=.data/dump
+HOME_CFG=tools/homepage/config
 
-.PHONY: domain-set cert-init db-dump db-restore up down rs reup build logs ls bash sh test reload vhosts cert dns-init dns-test psql db app-up app-down app-logs clean cg-up cg-down cg-build cg-index cg-status cg-ui cg-auth cg-mcp cg-sh
+.PHONY: domain-set cert-init db-dump db-restore up down rs reup build logs ls bash sh test reload vhosts home-gen cert dns-init dns-test psql db app-up app-down app-logs clean cg-up cg-down cg-build cg-index cg-status cg-ui cg-auth cg-mcp cg-sh
 
 # help/menu tu chu thich ## — cu phap: tools/make/README.md
 include tools/make/menu.mk
@@ -23,7 +24,7 @@ include tools/make/menu.mk
 #!var pw       |                | skip
 
 ##@ Core
-up:             ## bật proxy + postgres + coredns
+up: home-gen     ## bật proxy + postgres + coredns + homepage
 	$(DC) up -d
 down:           ## tắt hết
 	$(DC) down
@@ -47,8 +48,14 @@ test:           ## nginx -t, check config trước khi reload
 reload: test    ## reload nginx, KHÔNG đứt kết nối
 	$(DC) exec proxy nginx -s reload
 	@echo "proxy reloaded"
+	@$(MAKE) --no-print-directory home-gen
 vhosts:         ## liệt kê domain -> upstream + trạng thái
 	@tools/proxy/vhosts.sh
+# services.yaml cho homepage — ghi file tam roi mv de homepage khong doc file do dang.
+home-gen:
+	@tools/proxy/vhosts.sh --yaml > $(HOME_CFG)/.services.yaml.tmp && \
+	 mv $(HOME_CFG)/.services.yaml.tmp $(HOME_CFG)/services.yaml
+	@echo "wrote $(HOME_CFG)/services.yaml"
 cert:           ## xem cert hiện tại
 	@openssl x509 -in $(SSL)/self.crt -noout -subject -issuer -dates -ext subjectAltName
 
