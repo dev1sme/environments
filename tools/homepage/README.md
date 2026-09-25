@@ -18,7 +18,11 @@ Thêm app mới: làm như cũ — thêm `.conf` vào `tools/proxy/conf.d/vhosts
 
 Mấy chỗ dễ sai:
 
-1. **Image ghim `v2.4.0`**. Homepage hay đổi format config giữa các bản — nâng version thì đọc changelog trước.
+1. **Image `latest` không tự cập nhật** — `make up` dùng image đã pull. Lên bản mới:
+   ```bash
+   docker compose pull homepage && docker compose up -d homepage
+   ```
+   Homepage hay đổi format config giữa các bản — lên xong mà dashboard trống/lỗi thì xem `make logs n=homepage` và [release notes](https://github.com/gethomepage/homepage/releases). Bản đã test: `v2.4.0`.
 2. **`HOMEPAGE_ALLOWED_HOSTS`** phải khớp domain truy cập, không thì 400 `Host validation failed`. Đang set `home.${DOMAIN}` nên `make domain-set` tự đúng.
 3. **`config/` mount rw** — homepage tự copy skeleton còn thiếu và ghi `logs/`. Chạy bằng `PUID/PGID` = `HOST_UID/GID` nên file thuộc user host, không phải root.
 4. **Không mount `docker.sock`** — socket = root trên host, đổi lấy auto-discovery không đáng.
