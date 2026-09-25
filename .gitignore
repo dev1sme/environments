@@ -28,3 +28,4 @@ tools/homepage/config/*
 !tools/homepage/config/settings.yaml
 !tools/homepage/config/bookmarks.yaml
 !tools/homepage/config/widgets.yaml
+!tools/homepage/config/custom.css

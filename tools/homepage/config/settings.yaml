@@ -2,13 +2,23 @@
 # https://gethomepage.dev/configs/settings/
 title: Dev environment
 theme: dark
-headerStyle: clean
+color: slate
+headerStyle: boxed
+statusStyle: dot
 hideVersion: true
+useEqualHeights: true
+target: _blank
+
+quicklaunch:
+  searchDescriptions: true
+  hideInternetSearch: true
 
 layout:
   Apps:
+    icon: mdi-application-braces-outline
     style: row
     columns: 3
   Tools:
+    icon: mdi-toolbox-outline
     style: row
     columns: 3

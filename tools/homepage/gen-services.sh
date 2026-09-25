@@ -34,6 +34,20 @@ parse() {
 	done | sort
 }
 
+# Icon doan theo ten domain/upstream. mdi-* va *.png (dashboard-icons) homepage
+# tai tu CDN. Khong khop gi -> mdi-web.
+icon() {
+	case "$1 $2" in
+		home.*)           echo homepage.png ;;
+		*tomcat*)         echo apache-tomcat.png ;;
+		*postgres*|*pg*)  echo postgres.png ;;
+		*codegraph*)      echo mdi-graph-outline ;;
+		*static:*)        echo mdi-folder-network-outline ;;
+		*api*)            echo mdi-api ;;
+		*)                echo mdi-web ;;
+	esac
+}
+
 rows=$(parse)
 
 echo "# SINH TU DONG boi \`make reload\` tu tools/proxy/conf.d — dung sua tay."
@@ -44,14 +58,16 @@ for group in Apps Tools; do
 		[ -n "$name" ] || continue
 		case "$file" in vhosts/*) g=Apps ;; *) g=Tools ;; esac
 		[ "$g" = "$group" ] || continue
+		# http://name:port/path -> name:port/path
+		target=$(printf %s "$up" | sed -E 's#^[a-z]+://##')
 		echo "    - ${name%%.*}:"
 		echo "        href: \"https://$name\""
+		echo "        icon: \"$(icon "$name" "$up")\""
 		case "$up" in
-			static:*) echo "        description: \"static ${up#static:}\"" ;;
-			-)        echo "        description: \"$file\"" ;;
-			*)        echo "        description: \"$up\""
-			          # http://name:port/path -> name
-			          echo "        ping: \"$(printf %s "$up" | sed -E 's#^[a-z]+://##; s#[:/].*##')\"" ;;
+			static:*) echo "        description: \"$name → static\"" ;;
+			-)        echo "        description: \"$name → ? ($file)\"" ;;
+			*)        echo "        description: \"$name → $target\""
+			          echo "        ping: \"${target%%[:/]*}\"" ;;
 		esac
 	done
 done

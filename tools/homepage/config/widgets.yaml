@@ -1,9 +1,14 @@
 ---
-# https://gethomepage.dev/widgets/info/resources/
+# https://gethomepage.dev/widgets/info/
+- greeting:
+    text_size: xl
+    text: Dev environment
 - resources:
     cpu: true
     memory: true
+    uptime: true
 - datetime:
+    text_size: l
     format:
       dateStyle: short
       timeStyle: short

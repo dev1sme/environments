@@ -7,6 +7,7 @@ config/services.yaml    SINH TỰ ĐỘNG bởi `make home-gen` — gitignore, s
 config/bookmarks.yaml   link viết tay (pgAdmin, docs, ...) — commit
 config/settings.yaml    title, theme, layout nhóm — commit
 config/widgets.yaml     widget đầu trang — commit
+config/custom.css       nền gradient, hiệu ứng hover — commit
 config/*                còn lại homepage tự tạo (skeleton, logs/) — gitignore
 ```
 
@@ -15,6 +16,7 @@ Thêm app mới: làm như cũ — thêm `.conf` vào `tools/proxy/conf.d/vhosts
 - **Apps** = `conf.d/vhosts/*.conf`, **Tools** = `conf.d/*.conf`. Tên hiển thị = phần trước dấu `.` đầu tiên của `server_name`.
 - Trạng thái dùng `ping` tên upstream qua `env-net` — xanh = container còn sống. Không dùng `siteMonitor` vì HTTP status của upstream không nói app sống hay chết (icms `/` trả 404 vì app nằm ở `/icms/`).
 - Vhost static (`root`) không có chấm trạng thái.
+- Icon đoán theo tên domain/upstream trong hàm `icon()` của `gen-services.sh` (tomcat, api, static, ...), không khớp thì `mdi-web`. Tên icon: [dashboard-icons](https://dashboardicons.com) (`*.png`) hoặc [MDI](https://pictogrammers.com/library/mdi/) (`mdi-*`) — trình duyệt tải từ CDN, máy không có internet thì mất icon, không mất link.
 
 Mấy chỗ dễ sai:
 
