@@ -32,7 +32,7 @@ include /etc/nginx/conf.d/vhosts/*.conf;
 
 `make reload` thay vì `restart`: worker cũ phục vụ xong request đang dở mới thoát, demo đang chạy không bị đứt.
 
-Luôn `make test` trước `make reload` — `nginx -s reload` với config sai thì nginx **giữ config cũ và vẫn chạy**, không báo lỗi rõ ràng, sửa xong tưởng đã apply mà thực ra chưa. `make reload` đã gọi `test` trước.
+`make reload` tự chạy `nginx -t` trước — `nginx -s reload` với config sai thì nginx **giữ config cũ và vẫn chạy**, không báo lỗi rõ ràng, sửa xong tưởng đã apply mà thực ra chưa.
 
 ## Badge "DEV ENV"
 

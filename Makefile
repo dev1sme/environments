@@ -7,8 +7,10 @@ ZONE=tools/coredns/zones/$(DOMAIN).db
 SSL=tools/ssl-cert
 DUMP=.data/dump
 HOME_CFG=tools/homepage/config
+# p=<app> -> lenh chay tren projects/<app>/docker-compose.yml thay vi env.
+APP_DC=$(DC) -f projects/$(p)/docker-compose.yml
 
-.PHONY: domain-set cert-init db-dump db-restore up down rs reup build logs ls bash sh test reload home-gen cert dns-init dns-test psql db app-up app-down app-logs clean cg-index cg-status cg-ui cg-auth cg-mcp
+.PHONY: domain-set cert-init db-dump db-restore up down rs reup build logs ls bash sh test reload home-gen cert dns-init dns-test psql db clean cg-index cg-status cg-ui cg-auth cg-mcp
 
 # help/menu tu chu thich ## — cu phap: tools/make/README.md
 include tools/make/menu.mk
@@ -24,18 +26,18 @@ include tools/make/menu.mk
 #!var pw       |                | skip
 
 ##@ Core
-up: home-gen     ## bật proxy + postgres + coredns + homepage
-	$(DC) up -d
-down:           ## [n=proxy] | tắt hết, hoặc chỉ 1 service
-	$(DC) $(if $(n),rm -sf $(n),down)
+up: home-gen    ## [p=myapp] | bật env, hoặc build + bật projects/myapp
+	$(if $(p),$(APP_DC) up -d --build,$(DC) up -d)
+down:           ## n=proxy [p=myapp] | tắt 1 service, tắt hết (n trống), hoặc tắt app
+	$(if $(p),$(APP_DC) down,$(DC) $(if $(n),rm -sf $(n),down))
 rs: down up     ## down rồi up lại
 reup:           ## n=proxy | pull bản mới / rebuild + up 1 service
 	$(DC) pull --ignore-buildable $(n)
 	$(DC) up -d --build $(n)
 build:
 	$(DC) build $(n)
-logs:           ## n=proxy | xem log (follow)
-	$(DC) logs -f --tail=100 $(n)
+logs:           ## n=proxy [p=myapp] | xem log (follow) của service hoặc app
+	$(if $(p),$(APP_DC) logs -f --tail=100,$(DC) logs -f --tail=100 $(n))
 ls:             ## liệt kê container đang chạy
 	$(DOCKER) ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 bash:           ## n=proxy | vào shell container
@@ -44,7 +46,8 @@ sh:
 	$(DC) exec $(n) sh
 
 ##@ Proxy
-test:           ## nginx -t, check config trước khi reload
+# `reload` da goi truoc — an khoi help/menu.
+test:
 	$(DC) exec proxy nginx -t
 reload: test    ## reload nginx, KHÔNG đứt kết nối
 	$(DC) exec proxy nginx -s reload
@@ -55,8 +58,6 @@ home-gen:
 	@tools/homepage/gen-services.sh > $(HOME_CFG)/.services.yaml.tmp && \
 	 mv $(HOME_CFG)/.services.yaml.tmp $(HOME_CFG)/services.yaml
 	@echo "wrote $(HOME_CFG)/services.yaml"
-cert:           ## xem cert hiện tại
-	@openssl x509 -in $(SSL)/self.crt -noout -subject -issuer -dates -ext subjectAltName
 
 ##@ Portability
 domain-set:     ## d=new.local | ⚠ đổi domain nội bộ (sed toàn repo, cần commit trước)
@@ -80,7 +81,7 @@ domain-set:     ## d=new.local | ⚠ đổi domain nội bộ (sed toàn repo, c
 	@echo "xong. Buoc tiep:"
 	@echo "  1. make dns-init          sinh lai zone cho $(d)"
 	@echo "  2. make cert-init         cert cu chi phu domain cu, phai sinh lai"
-	@echo "  3. make test && make reload"
+	@echo "  3. make reload"
 	@echo "  4. git diff               doc lai truoc khi commit"
 cert-init:      ## [d=...] [force=1] | sinh CA riêng + wildcard cert
 	@d='$(if $(d),$(d),$(DOMAIN))'; \
@@ -117,7 +118,9 @@ cert-init:      ## [d=...] [force=1] | sinh CA riêng + wildcard cert
 	 openssl verify -CAfile $(SSL)/ca.crt $(SSL)/self.crt; \
 	 openssl x509 -in $(SSL)/self.crt -noout -subject -issuer -dates -ext subjectAltName
 	@echo ""
-	@echo "Roi: make test && make reload"
+	@echo "Roi: make reload"
+cert:           ## xem cert hiện tại
+	@openssl x509 -in $(SSL)/self.crt -noout -subject -issuer -dates -ext subjectAltName
 
 ##@ DNS
 dns-init:       ## sinh zone file từ HOST_IP trong .env
@@ -149,17 +152,6 @@ db-restore:     ## f=<file> | ⚠ restore (chỉ trên cluster mới init)
 	  *)    $(DOCKER) exec -i env-postgres psql -U $(POSTGRES_USER) -d postgres < "$(f)" ;; \
 	 esac
 	@echo "restored tu $(f)"
-
-##@ App
-app-up:         ## p=myapp | build + up projects/myapp
-	@test -n "$(p)" || { echo "thieu p=<app>"; exit 1; }
-	$(DC) -f projects/$(p)/docker-compose.yml up -d --build
-app-down:       ## p=myapp | tắt projects/myapp
-	@test -n "$(p)" || { echo "thieu p=<app>"; exit 1; }
-	$(DC) -f projects/$(p)/docker-compose.yml down
-app-logs:       ## p=myapp | log của projects/myapp
-	@test -n "$(p)" || { echo "thieu p=<app>"; exit 1; }
-	$(DC) -f projects/$(p)/docker-compose.yml logs -f --tail=100
 
 ##@ codegraph
 cg-auth:        ## u=<user> [pw=...] | sinh htpasswd cho UI

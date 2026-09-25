@@ -59,7 +59,7 @@ Verify:
 ```bash
 openssl verify -CAfile tools/ssl-cert/ca.crt tools/ssl-cert/self.crt
 make cert
-make test && make reload
+make reload
 ```
 
 Đổi domain thì cert cũ vô giá trị (SAN không khớp) — phải `make cert-init` lại. Xem `make domain-set` ở README gốc.

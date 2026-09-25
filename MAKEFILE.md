@@ -7,23 +7,21 @@ Biến trong `[ ]` là tuỳ chọn.
 
 ## Core
 
-| Target | Biến        | Mô tả                                     |
-| ------ | ----------- | ----------------------------------------- |
-| `up`   |             | bật proxy + postgres + coredns + homepage |
-| `down` | `[n=proxy]` | tắt hết, hoặc chỉ 1 service               |
-| `rs`   |             | down rồi up lại                           |
-| `reup` | `n=proxy`   | pull bản mới / rebuild + up 1 service     |
-| `logs` | `n=proxy`   | xem log (follow)                          |
-| `ls`   |             | liệt kê container đang chạy               |
-| `bash` | `n=proxy`   | vào shell container                       |
+| Target | Biến                  | Mô tả                                          |
+| ------ | --------------------- | ---------------------------------------------- |
+| `up`   | `[p=myapp]`           | bật env, hoặc build + bật projects/myapp       |
+| `down` | `n=proxy` `[p=myapp]` | tắt 1 service, tắt hết (n trống), hoặc tắt app |
+| `rs`   |                       | down rồi up lại                                |
+| `reup` | `n=proxy`             | pull bản mới / rebuild + up 1 service          |
+| `logs` | `n=proxy` `[p=myapp]` | xem log (follow) của service hoặc app          |
+| `ls`   |                       | liệt kê container đang chạy                    |
+| `bash` | `n=proxy`             | vào shell container                            |
 
 ## Proxy
 
-| Target   | Biến | Mô tả                                   |
-| -------- | ---- | --------------------------------------- |
-| `test`   |      | nginx -t, check config trước khi reload |
-| `reload` |      | reload nginx, KHÔNG đứt kết nối         |
-| `cert`   |      | xem cert hiện tại                       |
+| Target   | Biến | Mô tả                           |
+| -------- | ---- | ------------------------------- |
+| `reload` |      | reload nginx, KHÔNG đứt kết nối |
 
 ## Portability
 
@@ -31,6 +29,7 @@ Biến trong `[ ]` là tuỳ chọn.
 | ------------ | --------------------- | ----------------------------------------------------- |
 | `domain-set` | `d=new.local`         | ⚠ đổi domain nội bộ (sed toàn repo, cần commit trước) |
 | `cert-init`  | `[d=...]` `[force=1]` | sinh CA riêng + wildcard cert                         |
+| `cert`       |                       | xem cert hiện tại                                     |
 
 ## DNS
 
@@ -47,14 +46,6 @@ Biến trong `[ ]` là tuỳ chọn.
 | `db`         | `p=myapp`  | tạo database cho app đang chạy        |
 | `db-dump`    |            | pg_dumpall + gzip ra .data/dump/      |
 | `db-restore` | `f=<file>` | ⚠ restore (chỉ trên cluster mới init) |
-
-## App
-
-| Target     | Biến      | Mô tả                     |
-| ---------- | --------- | ------------------------- |
-| `app-up`   | `p=myapp` | build + up projects/myapp |
-| `app-down` | `p=myapp` | tắt projects/myapp        |
-| `app-logs` | `p=myapp` | log của projects/myapp    |
 
 ## codegraph
 
