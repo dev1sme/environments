@@ -1,0 +1,37 @@
+# https://squidfunk.github.io/mkdocs-material/setup/
+site_name: Tài liệu
+site_url: https://docs.thomson.cba/
+# Mount từ docs/ ở gốc repo. Không khai `nav` -> menu tự sinh theo thư mục.
+docs_dir: /content
+
+theme:
+  name: material
+  language: vi
+  # Ghi đè partials/actions.html: nút tải file .md gốc.
+  custom_dir: overrides
+  palette:
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+  features:
+    - navigation.indexes
+    - navigation.top
+    - navigation.instant
+    - search.highlight
+    - content.code.copy
+
+plugins:
+  - search
+
+markdown_extensions:
+  - tables
+  - admonition
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.tasklist:
+      custom_checkbox: true

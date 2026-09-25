@@ -24,7 +24,7 @@ include tools/make/menu.mk
 #!var pw       |                | skip
 
 ##@ Core
-up: home-gen    ## bật proxy + postgres + coredns + homepage + codegraph
+up: home-gen    ## bật proxy + postgres + coredns + homepage + docs + codegraph
 	$(DC) up -d
 down:           ## [n=proxy] | tắt 1 service, trống = tắt hết
 	$(DC) $(if $(n),rm -sf $(n),down)

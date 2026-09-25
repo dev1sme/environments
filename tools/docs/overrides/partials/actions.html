@@ -1,0 +1,5 @@
+{#- Thay nút edit/view của Material bằng nút tải file .md gốc. File gốc do
+    nginx serve ở /raw/ (tools/proxy/conf.d/docs.conf), không qua mkdocs. -#}
+<a href="/raw/{{ page.file.src_uri | urlencode }}" download title="Tải file .md" class="md-content__button md-icon">
+  {% include ".icons/material/download.svg" %}
+</a>

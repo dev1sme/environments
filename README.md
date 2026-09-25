@@ -26,7 +26,7 @@ tools/<ten>/         mỗi tool 1 thư mục: docker-compose.yml + config + READ
 | `tools/postgres/` | postgres dùng chung, mỗi app 1 database | [README](tools/postgres/README.md) |
 | `tools/coredns/` | DNS nội bộ (DƯ trong LAN công ty) | [README](tools/coredns/README.md) |
 | `tools/homepage/` | dashboard `https://home.$DOMAIN`, danh sách domain sinh từ conf proxy | [README](tools/homepage/README.md) |
-| `tools/docs/` | tài liệu markdown `https://docs.$DOMAIN` cho cả LAN (Docsify) | [README](tools/docs/README.md) |
+| `tools/docs/` | tài liệu markdown `https://docs.$DOMAIN` cho cả LAN (MkDocs Material) | [README](tools/docs/README.md) |
 | `tools/codegraph/` | code intelligence cho AI agent qua MCP | [README](tools/codegraph/README.md) |
 | `tools/java/` | hướng dẫn Dev Containers cho project Java (docs) | [README](tools/java/README.md) |
 

@@ -1,0 +1,22 @@
+# Tài liệu markdown https://docs.$DOMAIN — MkDocs Material đọc thẳng docs/ ở
+# gốc repo, tự reload khi file đổi. Chi tiết: README.md
+
+networks:
+  env-net:
+    name: env-net
+
+services:
+  docs:
+    image: squidfunk/mkdocs-material:latest
+    container_name: env-docs
+    restart: unless-stopped
+    # `serve` là dev server của mkdocs: watch file + live reload. Đủ cho LAN,
+    # không đưa ra internet.
+    command: serve --dev-addr=0.0.0.0:8000
+    volumes:
+      - .:/docs:ro
+      # Mount riêng, KHÔNG lồng trong /docs: /docs là ro nên docker không tạo
+      # được mountpoint con -> container không start.
+      - ../../docs:/content:ro
+    networks:
+      - env-net

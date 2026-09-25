@@ -14,4 +14,4 @@
     - Tài liệu:
         - href: https://docs.thomson.cba
           icon: mdi-book-open-page-variant-outline
-          description: markdown trong docs/
+          description: markdown trong docs/ (MkDocs)
