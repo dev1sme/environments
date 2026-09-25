@@ -22,6 +22,7 @@ Mọi directive trong `conf.d/*.conf` nằm ở context `http` (nginx.conf gốc
 cp conf.d/_example.conf.dist conf.d/vhosts/<app>.conf
 # sua server_name + gia tri $upstream
 make reload
+make vhosts   # bang domain -> upstream + trang thai
 ```
 
 `conf.d/vhosts/` bị gitignore: vhost của app cụ thể là cấu hình local, không thuộc repo môi trường. nginx gốc chỉ include `conf.d/*.conf` nên `00-defaults.conf` include tay tầng con:

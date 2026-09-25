@@ -23,6 +23,7 @@ Biến trong `[ ]` là tuỳ chọn.
 | -------- | ---- | --------------------------------------- |
 | `test`   |      | nginx -t, check config trước khi reload |
 | `reload` |      | reload nginx, KHÔNG đứt kết nối         |
+| `vhosts` |      | liệt kê domain -> upstream + trạng thái |
 | `cert`   |      | xem cert hiện tại                       |
 
 ## Portability

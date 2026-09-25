@@ -7,7 +7,7 @@ ZONE=tools/coredns/zones/$(DOMAIN).db
 SSL=tools/ssl-cert
 DUMP=.data/dump
 
-.PHONY: domain-set cert-init db-dump db-restore up down rs reup build logs ls bash sh test reload cert dns-init dns-test psql db app-up app-down app-logs clean cg-up cg-down cg-build cg-index cg-status cg-ui cg-auth cg-mcp cg-sh
+.PHONY: domain-set cert-init db-dump db-restore up down rs reup build logs ls bash sh test reload vhosts cert dns-init dns-test psql db app-up app-down app-logs clean cg-up cg-down cg-build cg-index cg-status cg-ui cg-auth cg-mcp cg-sh
 
 # help/menu tu chu thich ## — cu phap: tools/make/README.md
 include tools/make/menu.mk
@@ -47,6 +47,8 @@ test:           ## nginx -t, check config trước khi reload
 reload: test    ## reload nginx, KHÔNG đứt kết nối
 	$(DC) exec proxy nginx -s reload
 	@echo "proxy reloaded"
+vhosts:         ## liệt kê domain -> upstream + trạng thái
+	@tools/proxy/vhosts.sh
 cert:           ## xem cert hiện tại
 	@openssl x509 -in $(SSL)/self.crt -noout -subject -issuer -dates -ext subjectAltName
 
