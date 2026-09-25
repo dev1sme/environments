@@ -7,8 +7,6 @@ ZONE=tools/coredns/zones/$(DOMAIN).db
 SSL=tools/ssl-cert
 DUMP=.data/dump
 HOME_CFG=tools/homepage/config
-# p=<app> -> lenh chay tren projects/<app>/docker-compose.yml thay vi env.
-APP_DC=$(DC) -f projects/$(p)/docker-compose.yml
 
 .PHONY: domain-set cert-init db-dump db-restore up down reup build logs ls bash sh test reload home-gen cert dns-init dns-test psql db clean cg-index cg-status cg-ui cg-auth cg-mcp
 
@@ -18,7 +16,7 @@ include tools/make/menu.mk
 
 #!var n        | Service (n)    | docker compose config --services
 #!var p@cg-*   | Project (p)    | find "$PROJECTS_ROOT" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort
-#!var p        | Project (p)    | find projects -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort
+#!var name     | Tên database (name) |
 #!var f        | File dump (f)  | ls -1t .data/dump/* | while read -r f; do printf '%s\t%s\n' "$f" "$(du -h "$f" | cut -f1)"; done
 #!var d        | Domain (d)     |
 #!var u        | User (u)       |
@@ -26,17 +24,17 @@ include tools/make/menu.mk
 #!var pw       |                | skip
 
 ##@ Core
-up: home-gen    ## [p=myapp] | bật env, hoặc build + bật projects/myapp
-	$(if $(p),$(APP_DC) up -d --build,$(DC) up -d)
-down:           ## [n=proxy] [p=myapp] | tắt 1 service, tắt hết (n trống), hoặc tắt app
-	$(if $(p),$(APP_DC) down,$(DC) $(if $(n),rm -sf $(n),down))
+up: home-gen    ## bật proxy + postgres + coredns + homepage + codegraph
+	$(DC) up -d
+down:           ## [n=proxy] | tắt 1 service, trống = tắt hết
+	$(DC) $(if $(n),rm -sf $(n),down)
 reup:           ## n=proxy | pull bản mới / rebuild + up 1 service
 	$(DC) pull --ignore-buildable $(n)
 	$(DC) up -d --build $(n)
 build:
 	$(DC) build $(n)
-logs:           ## [n=proxy] [p=myapp] | xem log (follow) của service hoặc app
-	$(if $(p),$(APP_DC) logs -f --tail=100,$(DC) logs -f --tail=100 $(n))
+logs:           ## [n=proxy] | xem log (follow), trống = mọi service
+	$(DC) logs -f --tail=100 $(n)
 ls:             ## liệt kê container đang chạy
 	$(DOCKER) ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 bash:           ## n=proxy | vào shell container
@@ -135,9 +133,9 @@ dns-test:       ## dig thử 1 domain qua coredns
 ##@ DB
 psql:           ## vào psql
 	$(DC) exec postgres psql -U $(POSTGRES_USER)
-db:             ## p=myapp | tạo database cho app đang chạy
-	@test -n "$(p)" || { echo "thieu p=<app>"; exit 1; }
-	$(DC) exec postgres psql -U $(POSTGRES_USER) -c "CREATE DATABASE $(p);"
+db:             ## name=myapp | tạo database cho app
+	@test -n "$(name)" || { echo "thieu name=<database>"; exit 1; }
+	$(DC) exec postgres psql -U $(POSTGRES_USER) -c "CREATE DATABASE $(name);"
 db-dump:        ## pg_dumpall + gzip ra .data/dump/
 	@mkdir -p $(DUMP)
 	@f=$(DUMP)/all_$$(date +%Y%m%d_%H%M).sql.gz; \

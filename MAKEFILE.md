@@ -7,14 +7,14 @@ Biến trong `[ ]` là tuỳ chọn.
 
 ## Core
 
-| Target | Biến                    | Mô tả                                          |
-| ------ | ----------------------- | ---------------------------------------------- |
-| `up`   | `[p=myapp]`             | bật env, hoặc build + bật projects/myapp       |
-| `down` | `[n=proxy]` `[p=myapp]` | tắt 1 service, tắt hết (n trống), hoặc tắt app |
-| `reup` | `n=proxy`               | pull bản mới / rebuild + up 1 service          |
-| `logs` | `[n=proxy]` `[p=myapp]` | xem log (follow) của service hoặc app          |
-| `ls`   |                         | liệt kê container đang chạy                    |
-| `bash` | `n=proxy`               | vào shell container                            |
+| Target | Biến        | Mô tả                                                 |
+| ------ | ----------- | ----------------------------------------------------- |
+| `up`   |             | bật proxy + postgres + coredns + homepage + codegraph |
+| `down` | `[n=proxy]` | tắt 1 service, trống = tắt hết                        |
+| `reup` | `n=proxy`   | pull bản mới / rebuild + up 1 service                 |
+| `logs` | `[n=proxy]` | xem log (follow), trống = mọi service                 |
+| `ls`   |             | liệt kê container đang chạy                           |
+| `bash` | `n=proxy`   | vào shell container                                   |
 
 ## Proxy
 
@@ -39,12 +39,12 @@ Biến trong `[ ]` là tuỳ chọn.
 
 ## DB
 
-| Target       | Biến       | Mô tả                                 |
-| ------------ | ---------- | ------------------------------------- |
-| `psql`       |            | vào psql                              |
-| `db`         | `p=myapp`  | tạo database cho app đang chạy        |
-| `db-dump`    |            | pg_dumpall + gzip ra .data/dump/      |
-| `db-restore` | `f=<file>` | ⚠ restore (chỉ trên cluster mới init) |
+| Target       | Biến         | Mô tả                                 |
+| ------------ | ------------ | ------------------------------------- |
+| `psql`       |              | vào psql                              |
+| `db`         | `name=myapp` | tạo database cho app                  |
+| `db-dump`    |              | pg_dumpall + gzip ra .data/dump/      |
+| `db-restore` | `f=<file>`   | ⚠ restore (chỉ trên cluster mới init) |
 
 ## codegraph
 
@@ -63,7 +63,7 @@ Menu lấy gợi ý từ lệnh nguồn (chạy ở thư mục repo, đã nạp 
 | ------- | ------ | ------------------------------ | ---------------------------------------------------------------------------------------------------- |
 | `n`     |        | Service (n)                    | `docker compose config --services`                                                                   |
 | `p`     | `cg-*` | Project (p)                    | `find "$PROJECTS_ROOT" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' \| sort`                       |
-| `p`     |        | Project (p)                    | `find projects -mindepth 1 -maxdepth 1 -type d -printf '%f\n' \| sort`                               |
+| `name`  |        | Tên database (name)            | nhập tay                                                                                             |
 | `f`     |        | File dump (f)                  | `ls -1t .data/dump/* \| while read -r f; do printf '%s\t%s\n' "$f" "$(du -h "$f" \| cut -f1)"; done` |
 | `d`     |        | Domain (d)                     | nhập tay                                                                                             |
 | `u`     |        | User (u)                       | nhập tay                                                                                             |

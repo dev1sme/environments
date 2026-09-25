@@ -21,5 +21,5 @@ services:
     environment:
       # Host là tên service `postgres`, không phải localhost. User/pass khớp
       # POSTGRES_* trong .env ở root repo. Database tạo bằng DBeaver hoặc
-      # `make db p=<app>`.
+      # `make db name=<app>`.
       DATABASE_URL: postgresql://dev:changeme@postgres:5432/app_example
