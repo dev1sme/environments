@@ -19,7 +19,7 @@ Thêm tài liệu: bỏ file `.md` vào `docs/`, F5 — zensical watch thư mụ
 
 Mấy chỗ dễ sai:
 
-1. **Nút tải không phải code tự viết** — là nút "view" có sẵn của theme: lấy `edit_url` (= `repo_url` + `edit_uri` + file) rồi thay `/edit/` bằng `/raw/`. Vì vậy `mkdocs.yml` có `repo_url` dù không có repo; `repo_url` **không có `/` cuối**, không thì link thành `//raw/`.
+1. **Nút tải không phải code tự viết** — là nút "view" có sẵn của theme: lấy `edit_url` (= `repo_url` + `edit_uri` + file) rồi thay `/edit/` bằng `/raw/`. Link thường, không có thuộc tính `download` — việc tải là do nginx gửi `Content-Disposition: attachment` ở `/raw/` (`tools/proxy/conf.d/docs.conf`), nên mở thẳng link `/raw/` cũng tải chứ không đọc inline. Vì vậy `mkdocs.yml` có `repo_url` dù không có repo; `repo_url` **không có `/` cuối**, không thì link thành `//raw/`.
 2. **Mount lẻ `mkdocs.yml` + `overrides/`, không mount cả thư mục vào `/docs`.** Zensical bắt `docs_dir` nằm trong project root (`/docs`), mà `/docs` mount `:ro` thì docker không tạo được mountpoint con `/docs/content` — container không start.
 3. **Zensical còn rất mới** (bản đã test: 0.0.65), image `latest`. Sau `make reup n=docs` mà trang lỗi thì xem `make logs n=docs` và [changelog](https://zensical.org/about/changelog/).
 4. **`serve` là dev server** — image ghi rõ "không dành cho hosting". Đủ cho LAN, không đưa ra internet.
