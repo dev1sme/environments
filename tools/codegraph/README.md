@@ -16,6 +16,7 @@ make cg-index p=<project>        # init + index lan dau, re-index lan sau
 make cg-status p=<project>       # xem trang thai index
 make cg-mcp p=<project>          # in config MCP de dan vao .mcp.json
 make cg-upgrade                  # build ban release moi nhat, sau do re-index
+make cg-reindex-all              # re-index moi project da co .codegraph/
 ```
 
 Đường dẫn `p=` là **tương đối trong `PROJECTS_ROOT`** (khai ở `.env` gốc repo).

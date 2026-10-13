@@ -8,7 +8,7 @@ SSL=tools/ssl-cert
 DUMP=.data/dump
 HOME_CFG=tools/homepage/config
 
-.PHONY: domain-set cert-init db-dump db-restore mongosh mongo-dump mongo-restore up down reup build logs ls bash sh test reload home-gen cert dns-init dns-test psql db clean cg-index cg-status cg-upgrade cg-ui cg-auth cg-mcp
+.PHONY: domain-set cert-init db-dump db-restore mongosh mongo-dump mongo-restore up down reup build logs ls bash sh test reload home-gen cert dns-init dns-test psql db clean cg-index cg-reindex-all cg-status cg-upgrade cg-ui cg-auth cg-mcp
 
 # help/menu tu chu thich ## — cu phap: tools/make/README.md
 include tools/make/menu.mk
@@ -183,6 +183,16 @@ cg-index:       ## p=<project> | index 1 project
 		echo "[cg] init + index $(p) (lan dau)"; \
 		$(DOCKER) exec -w $(PROJECTS_ROOT)/$(p) env-codegraph codegraph init -y; \
 	fi
+cg-reindex-all: ## re-index mọi project đã có .codegraph/
+	@fail=0; n=0; \
+	 for d in $$(find "$(PROJECTS_ROOT)" \( -name node_modules -o -name .git -o -name vendor \) -prune \
+			-o -type d -name .codegraph -print 2>/dev/null | sort); do \
+		proj=$${d%/.codegraph}; n=$$((n+1)); \
+		echo "[cg] re-index $${proj#$(PROJECTS_ROOT)/}"; \
+		$(DOCKER) exec -w "$$proj" env-codegraph codegraph index >/dev/null \
+			|| { echo "[cg] FAIL $${proj#$(PROJECTS_ROOT)/}"; fail=$$((fail+1)); }; \
+	 done; \
+	 echo "[cg] $$n project, $$fail fail"; test $$fail -eq 0
 cg-status:      ## p=<project> | trạng thái index
 	@test -n "$(p)" || { echo "thieu p=<duong-dan-tuong-doi>"; exit 1; }
 	@$(DOCKER) exec -w $(PROJECTS_ROOT)/$(p) env-codegraph codegraph status
@@ -194,7 +204,7 @@ cg-upgrade:     ## build codegraph bản release mới nhất
 	 $(DC) build --build-arg CODEGRAPH_VERSION=$$ver codegraph
 	$(DC) up -d codegraph
 	@$(DOCKER) exec env-codegraph codegraph version
-	@echo "[cg] nho re-index: make cg-index p=<project>"
+	@echo "[cg] nho re-index: make cg-reindex-all"
 cg-ui:
 	@echo "codegraph v1.6.0 khong co lenh 'ui' (chi co tren branch main, chua release)."
 	@echo "Kiem tra ban hien tai:  docker exec env-codegraph codegraph --help"

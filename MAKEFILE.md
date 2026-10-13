@@ -51,13 +51,14 @@ Biến trong `[ ]` là tuỳ chọn.
 
 ## codegraph
 
-| Target       | Biến                  | Mô tả                                |
-| ------------ | --------------------- | ------------------------------------ |
-| `cg-auth`    | `u=<user>` `[pw=...]` | sinh htpasswd cho UI                 |
-| `cg-index`   | `p=<project>`         | index 1 project                      |
-| `cg-status`  | `p=<project>`         | trạng thái index                     |
-| `cg-mcp`     | `p=<project>`         | in config MCP                        |
-| `cg-upgrade` |                       | build codegraph bản release mới nhất |
+| Target           | Biến                  | Mô tả                                  |
+| ---------------- | --------------------- | -------------------------------------- |
+| `cg-auth`        | `u=<user>` `[pw=...]` | sinh htpasswd cho UI                   |
+| `cg-index`       | `p=<project>`         | index 1 project                        |
+| `cg-reindex-all` |                       | re-index mọi project đã có .codegraph/ |
+| `cg-status`      | `p=<project>`         | trạng thái index                       |
+| `cg-mcp`         | `p=<project>`         | in config MCP                          |
+| `cg-upgrade`     |                       | build codegraph bản release mới nhất   |
 
 ## Biến
 
