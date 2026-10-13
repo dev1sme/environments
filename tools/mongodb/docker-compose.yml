@@ -1,0 +1,28 @@
+# MongoDB dùng chung. Mỗi app 1 database, tự tạo khi app ghi lần đầu.
+# Lý do có GLIBC_TUNABLES: xem README.md
+
+networks:
+  env-net:
+    name: env-net
+
+services:
+  mongodb:
+    image: mongo:8.0.23
+    container_name: env-mongodb
+    restart: unless-stopped
+    environment:
+      # SERVER-121912: mongo 8.x crash (rseq) trên kernel 6.19/7.0. Bắt glibc
+      # giữ RSEQ trước để TCMalloc không dùng. Bỏ khi có fix (SERVER-125742).
+      GLIBC_TUNABLES: "glibc.pthread.rseq=1"
+    ports:
+      # Cho mongosh/Compass trên host. Container khác gọi qua tên `mongodb:27017`.
+      - "127.0.0.1:27017:27017"
+    volumes:
+      - ../../.data/mongodb:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - env-net

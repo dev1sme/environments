@@ -8,7 +8,7 @@ SSL=tools/ssl-cert
 DUMP=.data/dump
 HOME_CFG=tools/homepage/config
 
-.PHONY: domain-set cert-init db-dump db-restore up down reup build logs ls bash sh test reload home-gen cert dns-init dns-test psql db clean cg-index cg-status cg-ui cg-auth cg-mcp
+.PHONY: domain-set cert-init db-dump db-restore mongosh mongo-dump mongo-restore up down reup build logs ls bash sh test reload home-gen cert dns-init dns-test psql db clean cg-index cg-status cg-ui cg-auth cg-mcp
 
 # help/menu tu chu thich ## — cu phap: tools/make/README.md
 include tools/make/menu.mk
@@ -24,7 +24,7 @@ include tools/make/menu.mk
 #!var pw       |                | skip
 
 ##@ Core
-up: home-gen    ## bật proxy + postgres + coredns + homepage + docs + codegraph
+up: home-gen    ## bật proxy + postgres + mongodb + coredns + homepage + docs + codegraph
 	$(DC) up -d
 down:           ## [n=proxy] | tắt 1 service, trống = tắt hết
 	$(DC) $(if $(n),rm -sf $(n),down)
@@ -148,6 +148,18 @@ db-restore:     ## f=<file> | ⚠ restore (chỉ trên cluster mới init)
 	  *.gz) gzip -dc "$(f)" | $(DOCKER) exec -i env-postgres psql -U $(POSTGRES_USER) -d postgres ;; \
 	  *)    $(DOCKER) exec -i env-postgres psql -U $(POSTGRES_USER) -d postgres < "$(f)" ;; \
 	 esac
+	@echo "restored tu $(f)"
+mongosh:        ## vào mongosh
+	$(DC) exec mongodb mongosh
+mongo-dump:     ## mongodump --archive --gzip ra .data/dump/
+	@mkdir -p $(DUMP)
+	@f=$(DUMP)/mongo_$$(date +%Y%m%d_%H%M).archive.gz; \
+	 $(DOCKER) exec env-mongodb mongodump --archive --gzip --quiet > "$$f"; \
+	 echo "wrote $$f ($$(du -h "$$f" | cut -f1))"
+mongo-restore:  ## f=<file> | restore archive (không --drop, trùng _id bỏ qua)
+	@test -n "$(f)" || { echo "thieu f=<file>. Co san:"; ls -1 $(DUMP)/mongo_* 2>/dev/null | sed 's/^/  /'; exit 1; }
+	@test -f "$(f)" || { echo "khong thay file $(f)"; exit 1; }
+	$(DOCKER) exec -i env-mongodb mongorestore --archive --gzip < "$(f)"
 	@echo "restored tu $(f)"
 
 ##@ codegraph

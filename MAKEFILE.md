@@ -7,14 +7,14 @@ Biến trong `[ ]` là tuỳ chọn.
 
 ## Core
 
-| Target | Biến        | Mô tả                                                        |
-| ------ | ----------- | ------------------------------------------------------------ |
-| `up`   |             | bật proxy + postgres + coredns + homepage + docs + codegraph |
-| `down` | `[n=proxy]` | tắt 1 service, trống = tắt hết                               |
-| `reup` | `n=proxy`   | pull bản mới / rebuild + up 1 service                        |
-| `logs` | `[n=proxy]` | xem log (follow), trống = mọi service                        |
-| `ls`   |             | liệt kê container đang chạy                                  |
-| `bash` | `n=proxy`   | vào shell container                                          |
+| Target | Biến        | Mô tả                                                                  |
+| ------ | ----------- | ---------------------------------------------------------------------- |
+| `up`   |             | bật proxy + postgres + mongodb + coredns + homepage + docs + codegraph |
+| `down` | `[n=proxy]` | tắt 1 service, trống = tắt hết                                         |
+| `reup` | `n=proxy`   | pull bản mới / rebuild + up 1 service                                  |
+| `logs` | `[n=proxy]` | xem log (follow), trống = mọi service                                  |
+| `ls`   |             | liệt kê container đang chạy                                            |
+| `bash` | `n=proxy`   | vào shell container                                                    |
 
 ## Proxy
 
@@ -39,12 +39,15 @@ Biến trong `[ ]` là tuỳ chọn.
 
 ## DB
 
-| Target       | Biến         | Mô tả                                 |
-| ------------ | ------------ | ------------------------------------- |
-| `psql`       |              | vào psql                              |
-| `db`         | `name=myapp` | tạo database cho app                  |
-| `db-dump`    |              | pg_dumpall + gzip ra .data/dump/      |
-| `db-restore` | `f=<file>`   | ⚠ restore (chỉ trên cluster mới init) |
+| Target          | Biến         | Mô tả                                            |
+| --------------- | ------------ | ------------------------------------------------ |
+| `psql`          |              | vào psql                                         |
+| `db`            | `name=myapp` | tạo database cho app                             |
+| `db-dump`       |              | pg_dumpall + gzip ra .data/dump/                 |
+| `db-restore`    | `f=<file>`   | ⚠ restore (chỉ trên cluster mới init)            |
+| `mongosh`       |              | vào mongosh                                      |
+| `mongo-dump`    |              | mongodump --archive --gzip ra .data/dump/        |
+| `mongo-restore` | `f=<file>`   | restore archive (không --drop, trùng _id bỏ qua) |
 
 ## codegraph
 

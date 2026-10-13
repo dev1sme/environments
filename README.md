@@ -24,6 +24,7 @@ tools/<ten>/         mỗi tool 1 thư mục: docker-compose.yml + config + READ
 | `tools/proxy/` | nginx reverse proxy + TLS cho `*.$DOMAIN` | [README](tools/proxy/README.md) |
 | `tools/ssl-cert/` | wildcard cert, cách cài CA lên điện thoại | [README](tools/ssl-cert/README.md) |
 | `tools/postgres/` | postgres dùng chung, mỗi app 1 database | [README](tools/postgres/README.md) |
+| `tools/mongodb/` | mongodb dùng chung, mỗi app 1 database | [README](tools/mongodb/README.md) |
 | `tools/coredns/` | DNS nội bộ (DƯ trong LAN công ty) | [README](tools/coredns/README.md) |
 | `tools/homepage/` | dashboard `https://home.$DOMAIN`, danh sách domain sinh từ conf proxy | [README](tools/homepage/README.md) |
 | `tools/docs/` | tài liệu markdown `https://docs.$DOMAIN` cho cả LAN (Zensical) | [README](tools/docs/README.md) |
@@ -62,7 +63,7 @@ App chạy **compose riêng trong repo của nó**, repo này không bật/tắt
 
 1. Trong compose của app: join network `env-net` (`external: true`), không publish port ra host — route qua proxy. Mẫu: `projects/_example/docker-compose.yml`.
 2. Copy `tools/proxy/conf.d/_example.conf.dist` → `tools/proxy/conf.d/vhosts/<app>.conf` (thư mục `vhosts/` gitignore — vhost của app là cấu hình local), sửa `server_name` và giá trị `$upstream`. Đọc [tools/proxy/README.md](tools/proxy/README.md) trước — có mấy chỗ sập được.
-3. Cần DB riêng: xem [tools/postgres/README.md](tools/postgres/README.md).
+3. Cần DB riêng: xem [tools/postgres/README.md](tools/postgres/README.md) hoặc [tools/mongodb/README.md](tools/mongodb/README.md).
 4. Bật app bằng compose của nó, rồi `make reload`. Domain mới tự hiện ở `https://home.$DOMAIN`.
 
 Không cần thêm DNS record — zone đã có wildcard `*`.

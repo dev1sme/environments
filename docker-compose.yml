@@ -6,6 +6,8 @@ include:
     env_file: .env
   - path: tools/postgres/docker-compose.yml
     env_file: .env
+  - path: tools/mongodb/docker-compose.yml
+    env_file: .env
   - path: tools/coredns/docker-compose.yml
     env_file: .env
   - path: tools/codegraph/docker-compose.yml
