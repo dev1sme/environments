@@ -14,4 +14,10 @@
     - Tài liệu:
         - href: https://docs.thomson.cba
           icon: mdi-book-open-page-variant-outline
-          description: markdown trong docs/
+          description: Task documentation
+    - Server Info:
+        - href: https://docs.google.com/spreadsheets/d/1Q8nHm0fRO3vnALqTv8AWHC_58Nwuth46_XYdnnDCUGI/edit?gid=271585872#gid=271585872
+          icon: mdi-book-open-page-variant-outline
+    - Server Remote:
+        - href: https://docs.google.com/document/d/1TpXXAarDqYFRhFeSQ9OqsnZT51VXaJV9xUmZ-WTthwA/edit?tab=t.2f9tcjmw0yes#heading=h.lra5hsitpw3c
+          icon: mdi-book-open-page-variant-outline
