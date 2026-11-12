@@ -33,3 +33,4 @@ tools/homepage/config/*
 # Tài liệu markdown của ba, serve ở docs.$DOMAIN — nội dung cá nhân, không commit.
 docs/*
 !docs/.gitkeep
+!docs/index.md
