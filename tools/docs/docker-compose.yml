@@ -10,13 +10,8 @@ services:
     image: zensical/zensical:latest
     container_name: env-docs
     restart: unless-stopped
-    # `serve`: watch file + live reload. Image ghi "không dành cho hosting" —
-    # đủ cho LAN, không đưa ra internet.
     command: serve -f /docs/mkdocs.yml -a 0.0.0.0:8000
     volumes:
-      # Mount LẺ file, không mount cả thư mục vào /docs: zensical bắt docs_dir
-      # nằm trong project root (/docs), mà /docs mount :ro thì docker không tạo
-      # được mountpoint con /docs/content -> container không start.
       - ./mkdocs.yml:/docs/mkdocs.yml:ro
       - ./overrides:/docs/overrides:ro
       - ../../docs:/docs/content:ro
